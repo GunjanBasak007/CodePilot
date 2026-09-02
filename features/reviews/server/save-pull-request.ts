@@ -37,4 +37,5 @@ export async function savePullRequest(payload:PullRequestWebhookPayload){
             status: "pending",
         }
     })
+    return pullRequest;
 }
