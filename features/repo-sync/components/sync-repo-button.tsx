@@ -2,7 +2,10 @@
 
 import React from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { githubRepoKeys } from "@/features/github/lib/repos-query";
+import {
+  githubRepoKeys,
+  githubReposInfiniteQuery,
+} from "@/features/github/lib/repos-query";
 import { syncRepoCodebase } from "../actions/repo-sync";
 import { Button } from "@/components/ui/button";
 import { RepoSyncStatus } from "../types";
@@ -14,7 +17,10 @@ type SyncRepoButtonProps = {
   syncStatus: RepoSyncStatus | null;
 };
 
-function isSyncing(status: RepoSyncStatus | null, mutationPending: boolean) {
+function isSyncing(
+  status: RepoSyncStatus | null,
+  mutationPending: boolean,
+) {
   if (mutationPending) {
     return true;
   }
@@ -34,6 +40,10 @@ function getButtonLabel(
     return "Re-sync";
   }
 
+  if (status === "failed") {
+    return "Retry";
+  }
+
   return "Sync";
 }
 
@@ -46,12 +56,19 @@ const SyncRepoButton = ({
 
   const syncRepo = useMutation({
     mutationFn: () => syncRepoCodebase(repoFullName, branch),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: githubRepoKeys.all });
-      toast.success(`Repo ${repoFullName} synced successfully`);
+
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: githubReposInfiniteQuery.queryKey,
+      });
+
+      toast.success(`Sync started for ${repoFullName}`);
     },
+
     onError: (error) => {
-      toast.error(`Failed to sync repo ${repoFullName}: ${error.message}`);
+      toast.error(
+        `Failed to sync repo ${repoFullName}: ${error.message}`,
+      );
     },
   });
 

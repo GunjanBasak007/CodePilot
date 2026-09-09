@@ -147,6 +147,7 @@ export function buildRepoNamespace(repoFullName: string) {
       statusByRepo[sync.repoFullName] = sync.status;
     }
   
+    console.log("SYNC STATUSES:", statusByRepo);
     return statusByRepo;
   }
 

@@ -16,6 +16,7 @@ const REPOS_STALE_TIME = 10 * 60 * 1000; // 10 minutes
 
 export const githubReposInfiniteQuery = infiniteQueryOptions({
   queryKey: [...githubRepoKeys.all, "list"],
+
   queryFn: async ({ pageParam }) => {
     const response = await fetch(`/api/github/repos?page=${pageParam}`);
 
@@ -23,13 +24,34 @@ export const githubReposInfiniteQuery = infiniteQueryOptions({
       throw new Error("Failed to load repositories");
     }
 
-    return response.json();
+    return response.json() as Promise<GithubReposPage>;
   },
+
   initialPageParam: 1,
+
   getNextPageParam: (lastPage) => {
     if (lastPage.hasMore) {
       return lastPage.page + 1;
     }
+
+    return undefined;
   },
+
   staleTime: REPOS_STALE_TIME,
+
+  // Poll while at least one loaded repository is being synced.
+  // Stop automatically once all loaded repositories reach a terminal state.
+  refetchInterval: (query) => {
+    const pages = query.state.data?.pages ?? [];
+
+    const hasActiveSync = pages.some((page) =>
+      page.repos.some(
+        (repo) =>
+          repo.syncStatus === "pending" ||
+          repo.syncStatus === "syncing"
+      )
+    );
+
+    return hasActiveSync ? 2000 : false;
+  },
 });
