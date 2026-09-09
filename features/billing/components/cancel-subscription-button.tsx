@@ -4,7 +4,6 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 
-
 import { Button } from "@/components/ui/button";
 import { cancelSubscription } from "@/lib/billing";
 import { statusButtonClass } from "@/features/dashboard/lib/status-style";
@@ -24,11 +23,18 @@ export function CancelSubscriptionButton({
 
     try {
       await cancelSubscription();
-      toast.success("Subscription canceled. Pro access continues until renewal date.");
+
+      toast.success(
+        "Cancellation scheduled. Your Pro access will continue until the renewal date.",
+      );
+
       router.refresh();
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : "Could not cancel subscription.";
+        error instanceof Error
+          ? error.message
+          : "Could not cancel subscription.";
+
       toast.error(message);
     } finally {
       setLoading(false);

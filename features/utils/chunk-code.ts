@@ -15,7 +15,17 @@ export function chunkPrFiles(prNumber: number, files: PrFile[]): CodeChunk[] {
     // Slide a fixed-size window across the diff; large files produce many chunks
     for (let start = 0; start < lines.length; start += MAX_CHUNK_LINES) {
       const part = start / MAX_CHUNK_LINES;
-      const text = lines.slice(start, start + MAX_CHUNK_LINES).join("\n");
+
+      const text = lines
+        .slice(start, start + MAX_CHUNK_LINES)
+        .join("\n")
+        .trim();
+
+      // Never create chunks with empty content because Pinecone
+      // cannot generate embeddings for empty input.
+      if (!text) {
+        continue;
+      }
 
       chunks.push({
         id: buildChunkId(prNumber, file.filePath, part),

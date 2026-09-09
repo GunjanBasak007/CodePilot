@@ -60,26 +60,33 @@ export function buildRepoNamespace(repoFullName: string) {
     return `repo--${filePath}--part-${part}`;
   }
   
-  export function chunkRepoFiles(files: RepoFile[]): CodeChunk[] {
-    const chunks: CodeChunk[] = [];
-  
-    for (const file of files) {
-      const lines = file.content.split("\n");
-  
-      for (let start = 0; start < lines.length; start += MAX_CHUNK_LINES) {
-        const part = start / MAX_CHUNK_LINES;
-        const text = lines.slice(start, start + MAX_CHUNK_LINES).join("\n");
-  
-        chunks.push({
-          id: buildChunkId(file.filePath, part),
-          filePath: file.filePath,
-          text,
-        });
+export function chunkRepoFiles(files: RepoFile[]): CodeChunk[] {
+  const chunks: CodeChunk[] = [];
+
+  for (const file of files) {
+    const lines = file.content.split("\n");
+
+    for (let start = 0; start < lines.length; start += MAX_CHUNK_LINES) {
+      const part = start / MAX_CHUNK_LINES;
+      const text = lines
+        .slice(start, start + MAX_CHUNK_LINES)
+        .join("\n")
+        .trim();
+
+      if (!text) {
+        continue;
       }
+
+      chunks.push({
+        id: buildChunkId(file.filePath, part),
+        filePath: file.filePath,
+        text,
+      });
     }
-  
-    return chunks;
   }
+
+  return chunks;
+}
 
 
   export async function getRepoFiles(
@@ -118,21 +125,30 @@ export function buildRepoNamespace(repoFullName: string) {
     await index.deleteNamespace(namespace);
   }
 
-  export async function saveRepoChunks(namespace: string, chunks: CodeChunk[]) {
-    const index = getPineconeIndex();
-  
-    for (let start = 0; start < chunks.length; start += UPSERT_BATCH_SIZE) {
-      const batch = chunks.slice(start, start + UPSERT_BATCH_SIZE);
-  
-      const records = batch.map((chunk) => ({
+export async function saveRepoChunks(
+  namespace: string,
+  chunks: CodeChunk[],
+) {
+  const index = getPineconeIndex();
+
+  for (let start = 0; start < chunks.length; start += UPSERT_BATCH_SIZE) {
+    const batch = chunks.slice(start, start + UPSERT_BATCH_SIZE);
+
+    const records = batch
+      .map((chunk) => ({
         id: chunk.id,
-        text: chunk.text,
+        text: chunk.text.trim(),
         filePath: chunk.filePath,
-      }));
-  
-      await index.namespace(namespace).upsertRecords({ records });
+      }))
+      .filter((record) => record.text.length > 0);
+
+    if (records.length === 0) {
+      continue;
     }
+
+    await index.namespace(namespace).upsertRecords({ records });
   }
+}
 
 
   export async function getRepoSyncStatuses(repoFullNames: string[]) {

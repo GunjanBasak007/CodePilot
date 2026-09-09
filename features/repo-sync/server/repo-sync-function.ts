@@ -39,7 +39,11 @@ export const syncRepoCodebaseFunction = inngest.createFunction(
 
       return chunkRepoFiles(files);
     });
-
+    if (chunks.length === 0) {
+      throw new Error(
+        "No indexable code chunks were found in this repository.",
+      );
+    }
     const namespace = buildRepoNamespace(repoSync.repoFullName);
 
     if (repoSync.syncedAt) {

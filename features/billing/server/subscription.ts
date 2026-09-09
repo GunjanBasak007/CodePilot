@@ -29,15 +29,7 @@ export async function getUserSubscription(
   }
 
   if (user.subscriptionStatus === "canceled") {
-    const stillActive =
-      user.subscriptionRenewsAt !== null &&
-      user.subscriptionRenewsAt > new Date();
-
-    if (stillActive) {
-      return { plan: "pro", status: "active", renewsAt };
-    }
-
-    return { plan: "free", status: "canceled", renewsAt };
+    return { plan: "free", status: "canceled", renewsAt: null };
   }
 
   if (user.subscriptionStatus === "active") {
@@ -89,7 +81,7 @@ export async function cancelProSubscription(userId: string) {
   }
 
   const razorpay = getRazorpay();
-  await razorpay.subscriptions.cancel(user.razorpaySubscriptionId, 1);
+  await razorpay.subscriptions.cancel(user.razorpaySubscriptionId, 0);
 
   await prisma.user.update({
     where: { id: userId },

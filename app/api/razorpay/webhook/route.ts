@@ -30,47 +30,75 @@ export async function POST(request: Request) {
   const signature = request.headers.get("x-razorpay-signature");
   const secret = process.env.RAZORPAY_WEBHOOK_SECRET;
 
-  if (!secret || !signature) {
-    return Response.json({ error: "Invalid signature" }, { status: 401 });
+  if (!secret) {
+    console.error("Razorpay webhook secret is missing.");
+    return Response.json(
+      { error: "Webhook secret not configured" },
+      { status: 500 },
+    );
   }
 
-  const expected = createHmac("sha256", secret).update(body).digest("hex");
+  if (!signature) {
+    console.error("Razorpay webhook signature header is missing.");
+    return Response.json({ error: "Missing signature" }, { status: 401 });
+  }
+
+  const expected = createHmac("sha256", secret)
+    .update(body)
+    .digest("hex");
+
+  const expectedBuffer = Buffer.from(expected, "utf8");
+  const signatureBuffer = Buffer.from(signature, "utf8");
 
   if (
-    expected.length !== signature.length ||
-    !timingSafeEqual(Buffer.from(expected), Buffer.from(signature))
+    expectedBuffer.length !== signatureBuffer.length ||
+    !timingSafeEqual(expectedBuffer, signatureBuffer)
   ) {
+    console.error("Razorpay webhook signature mismatch.");
     return Response.json({ error: "Invalid signature" }, { status: 401 });
   }
 
   let event: RazorpayWebhookBody;
+
   try {
     event = JSON.parse(body) as RazorpayWebhookBody;
   } catch {
     return Response.json({ error: "Invalid payload" }, { status: 400 });
   }
 
+  console.log("Razorpay webhook received:", event.event);
+
   if (!HANDLED_EVENTS.has(event.event)) {
     return Response.json({ received: true });
   }
 
   const subscription = event.payload.subscription?.entity;
+
   if (!subscription) {
-    return Response.json({ error: "Missing subscription" }, { status: 400 });
+    return Response.json(
+      { error: "Missing subscription" },
+      { status: 400 },
+    );
   }
 
   const existingUser = await prisma.user.findFirst({
-    where: { razorpaySubscriptionId: subscription.id },
-    select: { id: true },
+    where: {
+      razorpaySubscriptionId: subscription.id,
+    },
+    select: {
+      id: true,
+    },
   });
 
   const userId = existingUser?.id ?? subscription.notes?.userId ?? null;
+
   if (!userId) {
     console.error(
       "Razorpay webhook: no user for subscription",
       subscription.id,
       event.event,
     );
+
     return Response.json({ received: true });
   }
 
@@ -78,48 +106,60 @@ export async function POST(request: Request) {
     ? new Date(subscription.current_end * 1000)
     : null;
 
-  if (event.event === "subscription.activated") {
-    await prisma.user.update({
-      where: { id: userId },
-      data: {
-        plan: "pro",
-        razorpaySubscriptionId: subscription.id,
-        subscriptionStatus: "active",
-        subscriptionRenewsAt: renewsAt,
-      },
-    });
-  }
+  switch (event.event) {
+    case "subscription.activated":
+      await prisma.user.update({
+        where: { id: userId },
+        data: {
+          plan: "pro",
+          razorpaySubscriptionId: subscription.id,
+          subscriptionStatus: "active",
+          subscriptionRenewsAt: renewsAt,
+        },
+      });
+      break;
 
-  if (event.event === "subscription.charged") {
-    await prisma.user.update({
-      where: { id: userId },
-      data: { subscriptionRenewsAt: renewsAt },
-    });
-  }
+    case "subscription.charged":
+      await prisma.user.update({
+        where: { id: userId },
+        data: {
+          plan: "pro",
+          subscriptionStatus: "active",
+          subscriptionRenewsAt: renewsAt,
+        },
+      });
+      break;
 
-  if (event.event === "subscription.cancelled") {
-    await prisma.user.update({
-      where: { id: userId },
-      data: { subscriptionStatus: "canceled" },
-    });
-  }
+   case "subscription.cancelled":
+  await prisma.user.update({
+    where: { id: userId },
+    data: {
+      plan: "free",
+      subscriptionStatus: "canceled",
+      subscriptionRenewsAt: null,
+    },
+  });
+  break;
 
-  if (event.event === "subscription.halted") {
-    await prisma.user.update({
-      where: { id: userId },
-      data: { subscriptionStatus: "halted" },
-    });
-  }
+    case "subscription.halted":
+      await prisma.user.update({
+        where: { id: userId },
+        data: {
+          subscriptionStatus: "halted",
+        },
+      });
+      break;
 
-  if (event.event === "subscription.completed") {
-    await prisma.user.update({
-      where: { id: userId },
-      data: {
-        plan: "free",
-        subscriptionStatus: "canceled",
-        subscriptionRenewsAt: null,
-      },
-    });
+    case "subscription.completed":
+      await prisma.user.update({
+        where: { id: userId },
+        data: {
+          plan: "free",
+          subscriptionStatus: "canceled",
+          subscriptionRenewsAt: null,
+        },
+      });
+      break;
   }
 
   return Response.json({ received: true });

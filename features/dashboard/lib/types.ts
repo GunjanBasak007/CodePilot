@@ -1,4 +1,3 @@
-
 export type RepoSyncStatus = "pending" | "syncing" | "synced" | "failed";
 
 /** Whether a repository is visible to everyone or only to collaborators. */
@@ -39,6 +38,6 @@ export type SubscriptionPlan = "free" | "pro";
  */
 export type UserSubscription = {
   plan: SubscriptionPlan;
-  status: "active" | "canceled" | "trialing";
+  status: "active" | "canceling" | "canceled" | "trialing";
   renewsAt: string | null;
 };
