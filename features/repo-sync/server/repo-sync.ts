@@ -14,7 +14,7 @@ const UPSERT_BATCH_SIZE = 90;
 const CODE_EXTENSIONS = [
     ".ts", ".tsx", ".js", ".jsx", ".mjs", ".py", ".go", ".rb", ".rs",
     ".java", ".kt", ".swift", ".c", ".h", ".cpp", ".cs", ".php",
-    ".sql", ".prisma", ".css", ".md", ".yml", ".yaml",
+    ".sql", ".prisma", ".css", ".md", ".yml", ".yaml", ".json"
 ];
 
 const SKIPPED_FOLDERS = [
