@@ -264,4 +264,4 @@ The easiest way to deploy is via [Vercel](https://vercel.com/new), the creators 
 
 ## License
 
-This project does not currently include a `LICENSE` file. Add one (e.g. MIT) to clarify usage terms before open-sourcing or distributing.
+This project is licensed under the [MIT License](./LICENSE) — see the `LICENSE` file for details.
