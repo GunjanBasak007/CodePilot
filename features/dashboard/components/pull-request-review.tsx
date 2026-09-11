@@ -1,5 +1,5 @@
 "use client";
-
+// Render AI-generated pull request reviews as Markdown.
 import ReactMarkdown from "react-markdown";
 
 type PullRequestReviewProps = {
