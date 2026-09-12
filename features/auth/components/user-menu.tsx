@@ -1,10 +1,18 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
-import { CaretCircleUpIcon, SignOutIcon } from "@phosphor-icons/react";
+import {
+  CaretCircleUpIcon,
+  SignOutIcon,
+} from "@phosphor-icons/react";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,6 +27,7 @@ import {
 
 import { cn } from "@/lib/utils";
 import { authClient } from "@/lib/auth-client";
+import { getCurrentSubscriptionPlan } from "@/lib/billing";
 
 import { SIGN_IN_PATH } from "../utils";
 
@@ -34,10 +43,6 @@ export type UserMenuTriggerVariant = "compact" | "profile";
 
 type UserMenuProps = {
   user: UserMenuUser;
-  /**
-   * `compact` — avatar-only trigger.
-   * `profile` — avatar + name in the trigger.
-   */
   variant?: UserMenuTriggerVariant;
   plan?: string;
   className?: string;
@@ -49,7 +54,6 @@ export function getDisplayName(user: UserMenuUser) {
 
 export function getInitials(user: UserMenuUser) {
   const source = user.name?.trim() || user.email || "U";
-
   const parts = source.split(/\s+/).filter(Boolean);
 
   if (parts.length >= 2) {
@@ -69,10 +73,15 @@ function UserAvatar({
   return (
     <Avatar size={size}>
       {user.image ? (
-        <AvatarImage src={user.image} alt={getDisplayName(user)} />
+        <AvatarImage
+          src={user.image}
+          alt={getDisplayName(user)}
+        />
       ) : null}
 
-      <AvatarFallback>{getInitials(user)}</AvatarFallback>
+      <AvatarFallback>
+        {getInitials(user)}
+      </AvatarFallback>
     </Avatar>
   );
 }
@@ -158,7 +167,9 @@ export function UserMenu({
               <UserAvatar user={user} />
 
               <div className="flex min-w-0 flex-1 flex-col gap-1">
-                <p className="truncate text-xs font-medium">{displayName}</p>
+                <p className="truncate text-xs font-medium">
+                  {displayName}
+                </p>
 
                 {user.email ? (
                   <p className="truncate text-xs text-muted-foreground">
@@ -175,7 +186,10 @@ export function UserMenu({
         <DropdownMenuSeparator />
 
         <DropdownMenuGroup>
-          <DropdownMenuItem variant="destructive" onClick={handleSignOut}>
+          <DropdownMenuItem
+            variant="destructive"
+            onClick={handleSignOut}
+          >
             <SignOutIcon />
             Log out
           </DropdownMenuItem>
@@ -187,12 +201,52 @@ export function UserMenu({
 
 type UserMenuWithSessionProps = Omit<UserMenuProps, "user">;
 
-export function UserMenuWithSession(props: UserMenuWithSessionProps) {
+export function UserMenuWithSession(
+  props: UserMenuWithSessionProps,
+) {
   const { data: session, isPending } = authClient.useSession();
+
+  const [resolvedPlan, setResolvedPlan] = useState(
+    props.plan ?? DEFAULT_PLAN,
+  );
+
+  useEffect(() => {
+    if (!session?.user || props.plan) {
+      return;
+    }
+
+    let cancelled = false;
+
+    const loadSubscriptionPlan = async () => {
+      try {
+        const plan = await getCurrentSubscriptionPlan();
+
+        if (!cancelled) {
+          setResolvedPlan(plan);
+        }
+      } catch {
+        if (!cancelled) {
+          setResolvedPlan(DEFAULT_PLAN);
+        }
+      }
+    };
+
+    void loadSubscriptionPlan();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [session?.user, props.plan]);
 
   if (isPending || !session?.user) {
     return null;
   }
 
-  return <UserMenu user={session.user} {...props} />;
+  return (
+    <UserMenu
+      user={session.user}
+      {...props}
+      plan={props.plan ?? resolvedPlan}
+    />
+  );
 }

@@ -4,9 +4,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { UserMenuWithSession } from "@/features/auth/components/user-menu";
+import { UpgradeButton } from "@/features/billing/components/upgrade-button";
 import { authClient } from "@/lib/auth-client";
 import { PLAN_DETAILS } from "@/features/settings/lib/plan-details";
-import { UpgradeButton } from "@/features/billing/components/upgrade-button";
 
 type IconProps = {
   className?: string;
@@ -254,17 +254,17 @@ export default function Home() {
       {/* Navbar */}
       <header className="sticky top-0 z-50 border-b border-zinc-200/70 bg-white/90 backdrop-blur-xl dark:border-white/10 dark:bg-zinc-950/90">
         <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-5 sm:px-6 lg:px-8">
-          <Link href="/" className="flex items-center gap-2.5">
+          <Link href="/" className="flex items-center gap-3">
             <Image
               src="/logo1.png"
               alt="CodePilot"
-              width={40}
-              height={40}
+              width={52}
+              height={52}
               priority
-              className="size-9 object-contain"
+              className="size-11 object-contain"
             />
 
-            <span className="text-[15px] font-semibold tracking-tight">
+            <span className="text-lg font-semibold tracking-tight">
               Code<span className="text-violet-500">Pilot</span>
             </span>
           </Link>
@@ -432,9 +432,9 @@ export default function Home() {
             </h1>
 
             <p className="mx-auto mt-6 max-w-2xl text-pretty text-base leading-7 text-zinc-600 sm:text-lg sm:leading-8 dark:text-zinc-400">
-              CodePilot indexes your repository, reviews incoming pull requests
-              with that context, and posts actionable feedback directly to
-              GitHub.
+              CodePilot indexes your repository, reviews incoming pull
+              requests with that context, and posts actionable feedback
+              directly to GitHub.
             </p>
 
             <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
@@ -493,7 +493,7 @@ export default function Home() {
                       alt="CodePilot"
                       width={52}
                       height={52}
-                      className="size-8 object-contain"
+                      className="size-9 object-contain"
                     />
 
                     <span className="text-xs font-semibold">CodePilot</span>
@@ -504,15 +504,21 @@ export default function Home() {
                       Overview
                     </div>
 
-                    <div className="rounded-md px-2.5 py-2">Repositories</div>
+                    <div className="rounded-md px-2.5 py-2">
+                      Repositories
+                    </div>
 
                     <div className="rounded-md bg-violet-500/10 px-2.5 py-2 font-medium text-violet-600 dark:text-violet-300">
                       Pull Requests
                     </div>
 
-                    <div className="rounded-md px-2.5 py-2">GitHub App</div>
+                    <div className="rounded-md px-2.5 py-2">
+                      GitHub App
+                    </div>
 
-                    <div className="rounded-md px-2.5 py-2">Settings</div>
+                    <div className="rounded-md px-2.5 py-2">
+                      Settings
+                    </div>
                   </div>
 
                   <div className="mt-12 rounded-lg border border-zinc-200 bg-white p-3 dark:border-white/10 dark:bg-white/[0.03]">
@@ -537,7 +543,9 @@ export default function Home() {
                             Pull Request
                           </span>
 
-                          <span className="text-[11px] text-zinc-400">#42</span>
+                          <span className="text-[11px] text-zinc-400">
+                            #42
+                          </span>
 
                           <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-600 dark:text-emerald-400">
                             Reviewed
@@ -612,7 +620,7 @@ export default function Home() {
                                   </div>
 
                                   <pre className="overflow-x-auto px-3 py-3 font-mono text-[10px] leading-5 text-zinc-300">
-                                    {`const refreshed = await refreshToken();
+{`const refreshed = await refreshToken();
 
 if (!refreshed) {
   return null;
@@ -765,8 +773,8 @@ return setSession(refreshed);`}
               <h3 className="mt-5 text-base font-semibold">Connect GitHub</h3>
 
               <p className="mt-2 text-sm leading-6 text-zinc-600 dark:text-zinc-400">
-                Sign in and install the CodePilot GitHub App so your
-                repositories and pull requests can be connected.
+                Sign in and install the CodePilot GitHub App so your repositories
+                and pull requests can be connected.
               </p>
             </div>
 
@@ -808,7 +816,9 @@ return setSession(refreshed);`}
                 className="border-orange-500/20 bg-orange-500/10 text-orange-600 dark:text-orange-300"
               />
 
-              <h3 className="mt-5 text-base font-semibold">Review in GitHub</h3>
+              <h3 className="mt-5 text-base font-semibold">
+                Review in GitHub
+              </h3>
 
               <p className="mt-2 text-sm leading-6 text-zinc-600 dark:text-zinc-400">
                 CodePilot generates actionable review feedback and posts the
@@ -830,8 +840,8 @@ return setSession(refreshed);`}
                 </h3>
 
                 <p className="mt-4 max-w-xl text-sm leading-7 text-zinc-600 dark:text-zinc-400">
-                  Reviews are built from the pull request changes together with
-                  retrieved repository context. That gives the model more
+                  Reviews are built from the pull request changes together
+                  with retrieved repository context. That gives the model more
                   information than the diff alone.
                 </p>
               </div>
@@ -911,8 +921,8 @@ return setSession(refreshed);`}
             </h2>
 
             <p className="mt-4 text-base leading-7 text-zinc-600 dark:text-zinc-400">
-              Review criteria are designed around practical engineering concerns
-              rather than generic code style suggestions.
+              Review criteria are designed around practical engineering
+              concerns rather than generic code style suggestions.
             </p>
           </div>
 
@@ -966,7 +976,9 @@ return setSession(refreshed);`}
                     <Icon className="size-5" />
                   </div>
 
-                  <h3 className="mt-5 text-base font-semibold">{item.title}</h3>
+                  <h3 className="mt-5 text-base font-semibold">
+                    {item.title}
+                  </h3>
 
                   <p className="mt-2 text-sm leading-6 text-zinc-600 dark:text-zinc-400">
                     {item.description}
@@ -1025,13 +1037,15 @@ return setSession(refreshed);`}
                     <Image
                       src="/logo1.png"
                       alt="CodePilot"
-                      width={40}
-                      height={40}
-                      className="size-8 object-contain"
+                      width={48}
+                      height={48}
+                      className="size-9 object-contain"
                     />
 
                     <div>
-                      <div className="text-xs font-semibold">CodePilot bot</div>
+                      <div className="text-xs font-semibold">
+                        CodePilot bot
+                      </div>
 
                       <div className="text-[10px] text-zinc-400">
                         commented on pull request
@@ -1057,7 +1071,9 @@ return setSession(refreshed);`}
                       </div>
 
                       <div>
-                        <div className="text-xs font-semibold">Reliability</div>
+                        <div className="text-xs font-semibold">
+                          Reliability
+                        </div>
 
                         <p className="mt-1.5 text-[11px] leading-5 text-zinc-600 dark:text-zinc-400">
                           Consider handling the failed refresh path before
@@ -1181,7 +1197,9 @@ return setSession(refreshed);`}
               </div>
 
               {isSignedIn ? (
-                <UpgradeButton className="mt-8 h-11 w-full rounded-lg bg-zinc-950 text-sm font-medium text-white shadow-none hover:bg-zinc-800 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200" />
+                <UpgradeButton
+                  className="mt-8 h-11 w-full rounded-lg bg-zinc-950 text-sm font-medium text-white shadow-none hover:bg-zinc-800 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200"
+                />
               ) : (
                 <Link
                   href="/sign-in"
@@ -1328,9 +1346,9 @@ return setSession(refreshed);`}
               </h2>
 
               <p className="mx-auto mt-4 max-w-2xl text-sm leading-7 text-zinc-400 sm:text-base">
-                Connect GitHub, index your repositories, and let CodePilot bring
-                another engineering perspective to the pull requests your team
-                is already reviewing.
+                Connect GitHub, index your repositories, and let CodePilot
+                bring another engineering perspective to the pull requests
+                your team is already reviewing.
               </p>
 
               <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
@@ -1359,62 +1377,192 @@ return setSession(refreshed);`}
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-zinc-200 dark:border-white/10">
-        <div className="mx-auto flex w-full max-w-7xl flex-col gap-5 px-5 py-7 sm:px-6 md:flex-row md:items-center md:justify-between lg:px-8">
-          <div>
-            <Link href="/" className="flex items-center gap-2.5">
-              <Image
-                src="/logo1.png"
-                alt="CodePilot"
-                width={36}
-                height={36}
-                className="size-8 object-contain"
-              />
+      <footer className="border-t border-zinc-200 bg-zinc-50/70 dark:border-white/10 dark:bg-zinc-950">
+        <div className="mx-auto w-full max-w-7xl px-5 sm:px-6 lg:px-8">
+          <div className="grid gap-12 py-14 sm:py-16 lg:grid-cols-[1.5fr_1fr_1fr_1fr]">
+            {/* Brand */}
+            <div className="max-w-sm">
+              <Link href="/" className="inline-flex items-center gap-3">
+                <Image
+                  src="/logo1.png"
+                  alt="CodePilot"
+                  width={72}
+                  height={72}
+                  className="size-14 object-contain"
+                />
 
-              <span className="text-sm font-semibold">
-                Code<span className="text-violet-500">Pilot</span>
-              </span>
-            </Link>
+                <div>
+                  <div className="text-lg font-semibold tracking-tight">
+                    Code<span className="text-violet-500">Pilot</span>
+                  </div>
 
-            <p className="mt-2 text-xs text-zinc-500">
-              AI-powered pull request reviews for GitHub.
-            </p>
+                  <div className="mt-0.5 text-[11px] text-zinc-400">
+                    AI code reviews for GitHub
+                  </div>
+                </div>
+              </Link>
+
+              <p className="mt-5 max-w-sm text-sm leading-6 text-zinc-500 dark:text-zinc-400">
+                AI-powered pull request reviews that use your codebase context
+                to surface practical feedback before changes reach production.
+              </p>
+
+              <div className="mt-6 inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-white px-3 py-1.5 text-xs text-zinc-500 dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-400">
+                <span className="size-1.5 rounded-full bg-emerald-500" />
+                Built for modern GitHub workflows
+              </div>
+            </div>
+
+            {/* Product */}
+            <div>
+              <h3 className="text-xs font-semibold uppercase tracking-[0.16em] text-zinc-400">
+                Product
+              </h3>
+
+              <div className="mt-5 flex flex-col items-start gap-3.5">
+                <button
+                  type="button"
+                  onClick={() => scrollToSection("how-it-works")}
+                  className="text-sm text-zinc-600 transition-colors hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white"
+                >
+                  How it works
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => scrollToSection("reviews")}
+                  className="text-sm text-zinc-600 transition-colors hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white"
+                >
+                  Reviews
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => scrollToSection("pricing")}
+                  className="text-sm text-zinc-600 transition-colors hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white"
+                >
+                  Pricing
+                </button>
+              </div>
+            </div>
+
+            {/* Account */}
+            <div>
+              <h3 className="text-xs font-semibold uppercase tracking-[0.16em] text-zinc-400">
+                Account
+              </h3>
+
+              <div className="mt-5 flex flex-col items-start gap-3.5">
+                <Link
+                  href="/dashboard"
+                  className="text-sm text-zinc-600 transition-colors hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white"
+                >
+                  Dashboard
+                </Link>
+
+                <Link
+                  href="/dashboard/repos"
+                  className="text-sm text-zinc-600 transition-colors hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white"
+                >
+                  Repositories
+                </Link>
+
+                <Link
+                  href="/dashboard/pull-request"
+                  className="text-sm text-zinc-600 transition-colors hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white"
+                >
+                  Pull requests
+                </Link>
+
+                <Link
+                  href={isSignedIn ? "/dashboard/settings" : "/sign-in"}
+                  className="text-sm text-zinc-600 transition-colors hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white"
+                >
+                  {isSignedIn ? "Settings" : "Sign in"}
+                </Link>
+              </div>
+            </div>
+
+            {/* Connect */}
+            <div>
+              <h3 className="text-xs font-semibold uppercase tracking-[0.16em] text-zinc-400">
+                Connect
+              </h3>
+
+              <div className="mt-5 flex flex-col items-start gap-3.5">
+                <a
+                  href="https://github.com/GunjanBasak007/CodePilot"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 text-sm text-zinc-600 transition-colors hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white"
+                >
+                  GitHub
+                  <ArrowUpRightIcon className="size-3.5" />
+                </a>
+
+                <Link
+                  href="/sign-in"
+                  className="text-sm text-zinc-600 transition-colors hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white"
+                >
+                  Get started
+                </Link>
+
+                <button
+                  type="button"
+                  onClick={() => scrollToSection("pricing")}
+                  className="text-sm text-zinc-600 transition-colors hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white"
+                >
+                  Upgrade to Pro
+                </button>
+              </div>
+            </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-5 text-xs text-zinc-500">
-            <button
-              type="button"
-              onClick={() => scrollToSection("how-it-works")}
-              className="transition-colors hover:text-zinc-900 dark:hover:text-white"
-            >
-              How it works
-            </button>
+          {/* Bottom bar */}
+          <div className="flex flex-col gap-5 border-t border-zinc-200 py-7 dark:border-white/10 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col gap-2.5">
+              <p className="text-xs text-zinc-500">
+                © {new Date().getFullYear()} CodePilot. All rights reserved.
+              </p>
 
-            <button
-              type="button"
-              onClick={() => scrollToSection("reviews")}
-              className="transition-colors hover:text-zinc-900 dark:hover:text-white"
-            >
-              Reviews
-            </button>
+              <div className="flex items-center gap-1.5 text-xs text-zinc-500">
+                <span>Made with</span>
 
-            <button
-              type="button"
-              onClick={() => scrollToSection("pricing")}
-              className="transition-colors hover:text-zinc-900 dark:hover:text-white"
-            >
-              Pricing
-            </button>
+                <span
+                  className="text-sm text-rose-500"
+                  aria-label="love"
+                >
+                  ♥
+                </span>
 
-            <a
-              href="https://github.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 transition-colors hover:text-zinc-900 dark:hover:text-white"
-            >
-              GitHub
-              <ArrowUpRightIcon className="size-3" />
-            </a>
+                <span>by</span>
+
+                <a
+                  href="https://github.com/GunjanBasak007"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-medium text-zinc-700 transition-colors hover:text-violet-500 dark:text-zinc-300 dark:hover:text-violet-400"
+                >
+                  Gunjan Basak
+                </a>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-5 text-xs text-zinc-500">
+              <span>Built with Next.js</span>
+
+              <span className="hidden size-1 rounded-full bg-zinc-300 sm:block dark:bg-zinc-700" />
+
+              <a
+                href="https://github.com/GunjanBasak007/CodePilot"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 transition-colors hover:text-zinc-900 dark:hover:text-white"
+              >
+                View source
+                <ArrowUpRightIcon className="size-3" />
+              </a>
+            </div>
           </div>
         </div>
       </footer>
