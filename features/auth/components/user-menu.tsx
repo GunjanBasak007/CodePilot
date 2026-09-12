@@ -1,7 +1,9 @@
 "use client";
+
 import { useRouter } from "next/navigation";
-import { authClient } from "@/lib/auth-client";
-import { cn } from "@/lib/utils";
+
+import { CaretCircleUpIcon, SignOutIcon } from "@phosphor-icons/react";
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -14,8 +16,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+
+import { cn } from "@/lib/utils";
+import { authClient } from "@/lib/auth-client";
+
 import { SIGN_IN_PATH } from "../utils";
-import { CaretCircleUpIcon, SignOutIcon } from "@phosphor-icons/react";
 
 const DEFAULT_PLAN = "Free";
 
@@ -25,12 +30,14 @@ export type UserMenuUser = {
   image?: string | null;
 };
 
-
-export type UserMenuTriggerVariant = "compact" | "profile"
+export type UserMenuTriggerVariant = "compact" | "profile";
 
 type UserMenuProps = {
   user: UserMenuUser;
-  /** `compact` — avatar-only trigger; `profile` — avatar + name in the trigger. */
+  /**
+   * `compact` — avatar-only trigger.
+   * `profile` — avatar + name in the trigger.
+   */
   variant?: UserMenuTriggerVariant;
   plan?: string;
   className?: string;
@@ -42,6 +49,7 @@ export function getDisplayName(user: UserMenuUser) {
 
 export function getInitials(user: UserMenuUser) {
   const source = user.name?.trim() || user.email || "U";
+
   const parts = source.split(/\s+/).filter(Boolean);
 
   if (parts.length >= 2) {
@@ -63,11 +71,28 @@ function UserAvatar({
       {user.image ? (
         <AvatarImage src={user.image} alt={getDisplayName(user)} />
       ) : null}
+
       <AvatarFallback>{getInitials(user)}</AvatarFallback>
     </Avatar>
   );
 }
 
+function PlanBadge({ plan }: { plan: string }) {
+  const isPro = plan.trim().toLowerCase() === "pro";
+
+  return (
+    <Badge
+      variant={isPro ? "outline" : "secondary"}
+      className={cn(
+        "w-fit text-[11px] font-medium",
+        isPro &&
+          "border-violet-500/30 bg-violet-500/10 text-violet-600 dark:border-violet-400/25 dark:bg-violet-400/10 dark:text-violet-300",
+      )}
+    >
+      {isPro ? "Pro plan" : "Free plan"}
+    </Badge>
+  );
+}
 
 export function UserMenu({
   user,
@@ -76,6 +101,7 @@ export function UserMenu({
   className,
 }: UserMenuProps) {
   const router = useRouter();
+
   const displayName = getDisplayName(user);
 
   const handleSignOut = async () => {
@@ -109,39 +135,48 @@ export function UserMenu({
           )
         }
       >
-        <UserAvatar user={user} size={variant === "compact" ? "default" : "sm"} />
+        <UserAvatar
+          user={user}
+          size={variant === "compact" ? "default" : "sm"}
+        />
+
         {variant === "profile" ? (
           <>
             <span className="max-w-32 truncate text-left text-xs font-medium">
               {displayName}
             </span>
-            <CaretCircleUpIcon  className="size-4 text-muted-foreground" />
+
+            <CaretCircleUpIcon className="size-4 text-muted-foreground" />
           </>
         ) : null}
       </DropdownMenuTrigger>
+
       <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuGroup>
           <DropdownMenuLabel className="p-0 font-normal">
             <div className="flex items-start gap-2 px-2 py-2">
               <UserAvatar user={user} />
+
               <div className="flex min-w-0 flex-1 flex-col gap-1">
                 <p className="truncate text-xs font-medium">{displayName}</p>
+
                 {user.email ? (
                   <p className="truncate text-xs text-muted-foreground">
                     {user.email}
                   </p>
                 ) : null}
-                <Badge variant="secondary" className="w-fit">
-                  {plan} plan
-                </Badge>
+
+                <PlanBadge plan={plan} />
               </div>
             </div>
           </DropdownMenuLabel>
         </DropdownMenuGroup>
+
         <DropdownMenuSeparator />
+
         <DropdownMenuGroup>
           <DropdownMenuItem variant="destructive" onClick={handleSignOut}>
-            <SignOutIcon  />
+            <SignOutIcon />
             Log out
           </DropdownMenuItem>
         </DropdownMenuGroup>
@@ -151,7 +186,6 @@ export function UserMenu({
 }
 
 type UserMenuWithSessionProps = Omit<UserMenuProps, "user">;
-
 
 export function UserMenuWithSession(props: UserMenuWithSessionProps) {
   const { data: session, isPending } = authClient.useSession();

@@ -11,8 +11,9 @@ export default async function DashboardSettingsPage() {
     <>
       <DashboardHeader
         title="Settings"
-        description="Manage your profile and subscription."
+        description="Manage your account and subscription."
       />
+
       <SettingsContent
         profile={settings.profile}
         subscription={settings.subscription}
