@@ -3,16 +3,18 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  LayoutIcon ,
-  GitBranch,
-  GithubLogo,
-  Gear,
+  FolderSimpleIcon,
+  GearIcon,
+  GitPullRequestIcon,
+  GithubLogoIcon,
+  LayoutIcon,
 } from "@phosphor-icons/react";
 
 import {
   DASHBOARD_NAV_ITEMS,
   type DashboardRoute,
 } from "@/features/dashboard/lib/routes";
+
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -23,17 +25,25 @@ import {
 } from "@/components/ui/sidebar";
 
 const NAV_ICONS = {
-  "layout-dashboard": LayoutIcon ,
-  "folder-git-2": GitBranch,
-  github: GithubLogo,
-  settings: Gear,
+  "layout-dashboard": LayoutIcon,
+  "folder-git-2": FolderSimpleIcon,
+  "git-pull-request": GitPullRequestIcon,
+  github: GithubLogoIcon,
+  settings: GearIcon,
 } as const;
 
-function isNavActive(pathname: string, href: DashboardRoute) {
+function isNavActive(
+  pathname: string,
+  href: DashboardRoute,
+) {
   if (href === "/dashboard") {
     return pathname === href;
   }
-  return pathname === href || pathname.startsWith(`${href}/`);
+
+  return (
+    pathname === href ||
+    pathname.startsWith(`${href}/`)
+  );
 }
 
 export function DashboardNav() {
@@ -41,12 +51,18 @@ export function DashboardNav() {
 
   return (
     <SidebarGroup>
-      <SidebarGroupLabel>Workspace</SidebarGroupLabel>
+      <SidebarGroupLabel>
+        Workspace
+      </SidebarGroupLabel>
+
       <SidebarGroupContent>
         <SidebarMenu>
           {DASHBOARD_NAV_ITEMS.map((item) => {
             const Icon = NAV_ICONS[item.icon];
-            const active = isNavActive(pathname, item.href);
+            const active = isNavActive(
+              pathname,
+              item.href,
+            );
 
             return (
               <SidebarMenuItem key={item.href}>

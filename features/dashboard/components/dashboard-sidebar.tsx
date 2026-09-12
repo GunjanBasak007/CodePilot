@@ -4,6 +4,7 @@ import Link from "next/link";
 import { DASHBOARD_ROUTES } from "@/features/dashboard/lib/routes";
 import { DashboardNav } from "@/features/dashboard/components/dashboard-nav";
 import { SidebarUserButton } from "@/features/dashboard/components/sidebar-user-button";
+
 import {
   Sidebar,
   SidebarContent,
@@ -15,6 +16,7 @@ import {
   SidebarRail,
   SidebarSeparator,
 } from "@/components/ui/sidebar";
+
 import { UserMenuUser } from "@/features/auth/components/user-menu";
 
 type DashboardSidebarProps = {
@@ -24,7 +26,7 @@ type DashboardSidebarProps = {
 
 export function DashboardSidebar({
   user,
-  plan = "Pro",
+  plan = "Free",
 }: DashboardSidebarProps) {
   return (
     <Sidebar collapsible="icon">
@@ -33,19 +35,30 @@ export function DashboardSidebar({
           <SidebarMenuItem>
             <SidebarMenuButton
               size="lg"
-              tooltip="ChaiCodeAIReview"
+              tooltip="CodePilot"
               render={
                 <Link href={DASHBOARD_ROUTES.overview}>
-                  <span className="flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-none bg-sidebar">
+                  <span
+                    className="
+                      flex size-14 shrink-0 items-center justify-center
+                      overflow-hidden rounded-none bg-sidebar
+                      group-data-[collapsible=icon]:size-8
+                    "
+                  >
                     <Image
                       src="/logo1.png"
                       alt="CodePilot"
                       width={52}
                       height={52}
                       priority
-                      className="object-contain"
+                      className="
+                        h-[52px] w-[52px] object-contain
+                        group-data-[collapsible=icon]:h-7
+                        group-data-[collapsible=icon]:w-7
+                      "
                     />
                   </span>
+
                   <span className="grid flex-1 text-left leading-tight group-data-[collapsible=icon]:hidden">
                     <span className="truncate font-medium">
                       CodePilot
@@ -57,13 +70,20 @@ export function DashboardSidebar({
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
+
       <SidebarContent>
         <DashboardNav />
       </SidebarContent>
+
       <SidebarFooter>
         <SidebarSeparator />
-        <SidebarUserButton user={user} plan={plan} />
+
+        <SidebarUserButton
+          user={user}
+          plan={plan}
+        />
       </SidebarFooter>
+
       <SidebarRail />
     </Sidebar>
   );
