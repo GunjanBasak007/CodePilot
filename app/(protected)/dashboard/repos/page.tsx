@@ -11,7 +11,7 @@ import { requireAuth } from "@/features/auth/actions";
 import { RepoList } from "@/features/dashboard/components/repo-list";
 
 export const metadata: Metadata = {
-  title: "Repositories · Dashboard",
+  title: "Repositories",
 };
 
 function ReposNotConnected() {

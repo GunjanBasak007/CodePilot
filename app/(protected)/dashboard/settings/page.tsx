@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { requireAuth } from "@/features/auth/actions";
 import { DashboardHeader } from "@/features/dashboard/components/dashboard-header";
 import { SettingsContent } from "@/features/dashboard/components/settings-content";

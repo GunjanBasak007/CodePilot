@@ -18,7 +18,7 @@ type PullRequestPageProps = {
 };
 
 export const metadata: Metadata = {
-  title: "Pull Request · Dashboard",
+  title: "Pull Request",
 };
 
 function getStatusTone(

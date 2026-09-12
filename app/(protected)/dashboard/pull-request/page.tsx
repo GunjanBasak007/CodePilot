@@ -10,7 +10,7 @@ import { getInstallationStatus } from "@/features/github/server/installation";
 import { getUserPullRequests } from "@/features/dashboard/server/pull-requests";
 
 export const metadata: Metadata = {
-  title: "Pull Requests · Dashboard",
+  title: "Pull Requests",
 };
 
 function PullRequestsNotConnected() {
