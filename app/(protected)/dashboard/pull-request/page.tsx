@@ -38,7 +38,7 @@ export default async function DashboardPullRequestPage() {
   const header = (
     <DashboardHeader
       title="Pull Requests"
-      description="AI-generated reviews for your GitHub pull requests."
+      description="Review pull requests, track status, and open generated feedback."
     />
   );
 
