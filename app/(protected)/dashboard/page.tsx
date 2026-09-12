@@ -1,9 +1,21 @@
-import React from 'react'
+import { DashboardHeader } from "@/features/dashboard/components/dashboard-header";
+import { DashboardOverview } from "@/features/dashboard/components/dashboard-overview";
+import { getDashboardOverview } from "@/features/dashboard/server/overview";
+import { requireAuth } from "@/features/auth/actions";
 
-const Dashboard = () => {
+export default async function DashboardPage() {
+  const session = await requireAuth();
+
+  const overview = await getDashboardOverview(session.user.id);
+
   return (
-    <div>Dashboard</div>
-  )
-}
+    <>
+      <DashboardHeader
+        title="Dashboard"
+        description="Overview of your CodePilot workspace."
+      />
 
-export default Dashboard
+      <DashboardOverview data={overview} />
+    </>
+  );
+}
