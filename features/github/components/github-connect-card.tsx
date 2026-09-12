@@ -1,175 +1,222 @@
 "use client";
 
 import {
-    ArrowSquareOut,
-    GithubLogo,
-    Plugs,
+  ArrowSquareOut,
+  CheckCircle,
+  GithubLogo,
+  Plugs,
 } from "@phosphor-icons/react";
 
 import type { GithubInstallationStatus } from "@/features/dashboard/lib/types";
 import {
-    statusBadge,
-    statusButtonClass,
+  statusBadge,
+  statusButtonClass,
 } from "@/features/dashboard/lib/status-style";
 import { getGithubInstallUrl } from "@/features/github/utils/github-app";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardFooter,
-    CardHeader,
-    CardTitle,
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
 } from "@/components/ui/card";
+
 import { disconnectGithubApp } from "../actions";
 
-
 type GithubConnectCardProps = {
-    userId: string;
-    installation: GithubInstallationStatus;
+  userId: string;
+  installation: GithubInstallationStatus;
 };
 
+const capabilities = [
+  "Repository metadata",
+  "Pull request webhooks",
+  "AI-generated review comments",
+];
 
-
-function ConnectedDetails({ accountLogin }: { accountLogin: string | null }) {
-    return (
-        <p className="text-xs text-muted-foreground">
-            Installed for{" "}
-            <span className="font-medium text-green-700 dark:text-green-400">
-                @{accountLogin}
-            </span>
-            . The app can read repository metadata and post review comments on pull
-            requests.
-        </p>
-    );
-}
-
-function DisconnectedDetails() {
-    return (
-        <ul className="list-inside list-disc space-y-1 text-xs text-muted-foreground">
-            <li>Access public and private repositories you select</li>
-            <li>Receive webhooks for pull request events</li>
-            <li>Post AI-generated review comments on PRs</li>
-        </ul>
-    );
+function CapabilityList() {
+  return (
+    <div className="space-y-3">
+      {capabilities.map((capability) => (
+        <div
+          key={capability}
+          className="flex items-center gap-2.5 text-sm text-muted-foreground"
+        >
+          <CheckCircle className="size-4 shrink-0 text-emerald-500" weight="fill" />
+          <span>{capability}</span>
+        </div>
+      ))}
+    </div>
+  );
 }
 
 function ConnectedActions() {
-    return (
-        <form action={disconnectGithubApp}>
-            <Button
-                type="submit"
-                variant="outline"
-                className={statusButtonClass.danger}
-            >
-                <Plugs />
-                Disconnect GitHub App
-            </Button>
-        </form>
-    );
+  return (
+    <form action={disconnectGithubApp}>
+      <Button
+        type="submit"
+        variant="outline"
+        className={cn(
+          "w-full sm:w-auto",
+          statusButtonClass.danger,
+        )}
+      >
+        <Plugs className="size-4" />
+        Disconnect GitHub App
+      </Button>
+    </form>
+  );
 }
 
-function DisconnectedActions({ installUrl }: { installUrl: string }) {
-    return (
-        <Button
-            nativeButton={false}
-            render={<a href={installUrl} />}
-            className={statusButtonClass.success}
-        >
-            <GithubLogo />
-            Install GitHub App
-            <ArrowSquareOut className="size-3 opacity-80" />
-        </Button>
-    );
-}
-
-
-
-function ConnectionDetails({
-    connected,
-    accountLogin,
+function DisconnectedActions({
+  installUrl,
 }: {
-    connected: boolean;
-    accountLogin: string | null;
+  installUrl: string;
 }) {
-    if (connected) {
-        return <ConnectedDetails accountLogin={accountLogin} />;
-    }
-
-    return <DisconnectedDetails />;
-}
-
-
-function ConnectionActions({
-    connected,
-    installUrl,
-}: {
-    connected: boolean;
-    installUrl: string;
-}) {
-    if (connected) {
-        return <ConnectedActions />;
-    }
-
-    return <DisconnectedActions installUrl={installUrl} />;
+  return (
+    <Button
+      nativeButton={false}
+      render={<a href={installUrl} />}
+      className="w-full sm:w-auto"
+    >
+      <GithubLogo className="size-4" />
+      Install GitHub App
+      <ArrowSquareOut className="size-3.5 opacity-70" />
+    </Button>
+  );
 }
 
 export function GithubConnectCard({
-    userId,
-    installation,
+  userId,
+  installation,
 }: GithubConnectCardProps) {
-    const { connected, accountLogin } = installation;
-    // Install URL encodes userId so the callback can associate the installation
-    const installUrl = getGithubInstallUrl(userId);
+  const { connected, accountLogin } = installation;
 
-    // Default to neutral styling; switch to green when connected
-    let cardBorderClass = "border-border";
-    let iconWrapperClass = "border-border bg-muted";
-    let statusTone: "success" | "neutral" = "neutral";
-    let statusLabel = "Not connected";
+  // Install URL encodes the userId so the callback can associate
+  // the GitHub installation with the authenticated CodePilot user.
+  const installUrl = getGithubInstallUrl(userId);
 
-    if (connected) {
-        cardBorderClass = "border-green-500/30";
-        iconWrapperClass =
-            "border-green-500/40 bg-green-500/10 text-green-700 dark:text-green-400";
-        statusTone = "success";
-        statusLabel = "Connected";
-    }
+  const statusTone: "success" | "neutral" = connected
+    ? "success"
+    : "neutral";
 
-    return (
-        <div className="flex flex-1 flex-col gap-6 p-6">
-            <Card className={cn("max-w-2xl transition-colors", cardBorderClass)}>
-                <CardHeader>
-                    <div className="flex items-start justify-between gap-4">
-                        <div className="flex items-center gap-3">
-                            <span
-                                className={cn(
-                                    "flex size-10 items-center justify-center rounded-none border",
-                                    iconWrapperClass
-                                )}
-                            >
-                                <GithubLogo className="size-5" />
-                            </span>
-                            <div>
-                                <CardTitle>GitHub App</CardTitle>
-                                <CardDescription>
-                                    Install the Chai reviewer app on your GitHub account or
-                                    organization to access public and private repositories.
-                                </CardDescription>
-                            </div>
-                        </div>
-                        <span className={statusBadge(statusTone)}>{statusLabel}</span>
-                    </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    <ConnectionDetails connected={connected} accountLogin={accountLogin} />
-                </CardContent>
-                <CardFooter className="flex flex-wrap gap-2">
-                    <ConnectionActions connected={connected} installUrl={installUrl} />
-                </CardFooter>
-            </Card>
-        </div>
-    );
+  const statusLabel = connected
+    ? "Connected"
+    : "Not connected";
+
+  return (
+    <div className="flex flex-1 flex-col p-6">
+      <Card
+        className={cn(
+          "w-full max-w-3xl overflow-hidden",
+          connected
+            ? "border-emerald-500/20"
+            : "border-border",
+        )}
+      >
+        <CardHeader className="border-b border-border px-6 py-6 sm:px-8">
+          <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+            <div className="flex min-w-0 items-start gap-4">
+              <div
+                className={cn(
+                  "flex size-11 shrink-0 items-center justify-center rounded-lg border",
+                  connected
+                    ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                    : "border-border bg-muted text-foreground",
+                )}
+              >
+                <GithubLogo className="size-6" />
+              </div>
+
+              <div className="min-w-0">
+                <p className="text-xs font-medium uppercase tracking-[0.12em] text-muted-foreground">
+                  Integration
+                </p>
+
+                <h2 className="mt-1 text-lg font-semibold tracking-tight">
+                  GitHub App
+                </h2>
+
+                <p className="mt-1 max-w-xl text-sm leading-6 text-muted-foreground">
+                  Connect GitHub so CodePilot can access your repositories
+                  and process pull request events.
+                </p>
+              </div>
+            </div>
+
+            <span className={statusBadge(statusTone)}>
+              {statusLabel}
+            </span>
+          </div>
+        </CardHeader>
+
+        <CardContent className="space-y-7 px-6 py-7 sm:px-8">
+          {connected ? (
+            <>
+              <section>
+                <p className="text-xs font-medium uppercase tracking-[0.12em] text-muted-foreground">
+                  Connected account
+                </p>
+
+                <p className="mt-2 text-base font-medium">
+                  {accountLogin
+                    ? `@${accountLogin}`
+                    : "GitHub account"}
+                </p>
+
+                <p className="mt-1 text-sm text-muted-foreground">
+                  The CodePilot GitHub App is installed and ready to
+                  receive repository and pull request events.
+                </p>
+              </section>
+
+              <section className="border-t border-border pt-6">
+                <p className="text-xs font-medium uppercase tracking-[0.12em] text-muted-foreground">
+                  App capabilities
+                </p>
+
+                <div className="mt-4">
+                  <CapabilityList />
+                </div>
+              </section>
+            </>
+          ) : (
+            <>
+              <section>
+                <p className="text-sm font-medium">
+                  Connect your GitHub workspace
+                </p>
+
+                <p className="mt-1 max-w-xl text-sm leading-6 text-muted-foreground">
+                  Install the CodePilot GitHub App on your account or
+                  organization and select the repositories you want
+                  CodePilot to work with.
+                </p>
+              </section>
+
+              <section className="border-t border-border pt-6">
+                <p className="text-xs font-medium uppercase tracking-[0.12em] text-muted-foreground">
+                  CodePilot will be able to
+                </p>
+
+                <div className="mt-4">
+                  <CapabilityList />
+                </div>
+              </section>
+            </>
+          )}
+        </CardContent>
+
+        <CardFooter className="border-t border-border px-6 py-5 sm:px-8">
+          {connected ? (
+            <ConnectedActions />
+          ) : (
+            <DisconnectedActions installUrl={installUrl} />
+          )}
+        </CardFooter>
+      </Card>
+    </div>
+  );
 }
