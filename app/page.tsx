@@ -2,11 +2,98 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, type MouseEvent } from "react";
+import {
+  AnimatePresence,
+  motion,
+  type Variants,
+  useMotionValue,
+  useReducedMotion,
+  useSpring,
+} from "framer-motion";
 import { UserMenuWithSession } from "@/features/auth/components/user-menu";
 import { UpgradeButton } from "@/features/billing/components/upgrade-button";
 import { authClient } from "@/lib/auth-client";
 import { PLAN_DETAILS } from "@/features/settings/lib/plan-details";
+
+/**
+ * Shared animation primitives
+ * ---------------------------
+ * Kept in one place so every section of the landing page animates
+ * consistently. `viewport={{ once: true }}` is used everywhere an
+ * element animates on scroll so it only plays once per visit.
+ */
+
+// Fade + slide up — the default entrance for headings, paragraphs, cards.
+const fadeUp: Variants = {
+  hidden: { opacity: 0, y: 28 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.6 },
+  },
+};
+
+// Plain fade — for things where a slide would feel like too much.
+const fadeIn: Variants = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1, transition: { duration: 0.7 } },
+};
+
+// Fade + scale up slightly — nice for the product preview / cards that
+// should feel like they're "arriving".
+const scaleIn: Variants = {
+  hidden: { opacity: 0, scale: 0.94, y: 16 },
+  visible: {
+    opacity: 1,
+    scale: 1,
+    y: 0,
+    transition: { duration: 0.7 },
+  },
+};
+
+// Slide in from the left / right — used for the two-column "Reviews" block.
+const slideInLeft: Variants = {
+  hidden: { opacity: 0, x: -32 },
+  visible: {
+    opacity: 1,
+    x: 0,
+    transition: { duration: 0.65 },
+  },
+};
+
+const slideInRight: Variants = {
+  hidden: { opacity: 0, x: 32 },
+  visible: {
+    opacity: 1,
+    x: 0,
+    transition: { duration: 0.65 },
+  },
+};
+
+// Wraps a group of children and staggers their entrance. Pair with
+// children that use `fadeUp` (or similar) as their `variants`.
+const staggerContainer: Variants = {
+  hidden: {},
+  visible: {
+    transition: { staggerChildren: 0.12, delayChildren: 0.05 },
+  },
+};
+
+// Props every "reveal on scroll" wrapper shares.
+const revealOnScroll = {
+  initial: "hidden",
+  whileInView: "visible",
+  viewport: { once: true, amount: 0.2 },
+} as const;
+
+// Subtle press/hover feedback for anything clickable.
+const tapScale = { whileHover: { scale: 1.03 }, whileTap: { scale: 0.97 } };
+const cardHover = { whileHover: { y: -4 }, transition: { duration: 0.25 } };
+
+// motion-wrapped Next.js Link so primary/secondary CTAs can use
+// whileHover / whileTap directly, just like a native motion.button.
+const MotionLink = motion(Link);
 
 type IconProps = {
   className?: string;
@@ -226,6 +313,43 @@ function CircleNumber({
 export default function Home() {
   const { data: session } = authClient.useSession();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const reduceMotion = useReducedMotion();
+
+  // Cursor motion is driven by MotionValues so pointer updates never cause
+  // React re-renders. Two spring layers create a subtle "lead + trail" effect.
+  const cursorX = useMotionValue(-120);
+  const cursorY = useMotionValue(-120);
+  const cursorXFast = useSpring(cursorX, {
+    stiffness: 520,
+    damping: 38,
+    mass: 0.25,
+  });
+  const cursorYFast = useSpring(cursorY, {
+    stiffness: 520,
+    damping: 38,
+    mass: 0.25,
+  });
+  const cursorXSlow = useSpring(cursorX, {
+    stiffness: 110,
+    damping: 24,
+    mass: 0.7,
+  });
+  const cursorYSlow = useSpring(cursorY, {
+    stiffness: 110,
+    damping: 24,
+    mass: 0.7,
+  });
+
+  const handleMouseMove = (event: MouseEvent<HTMLElement>) => {
+    if (reduceMotion) return;
+    cursorX.set(event.clientX);
+    cursorY.set(event.clientY);
+  };
+
+  const handleMouseLeave = () => {
+    cursorX.set(-120);
+    cursorY.set(-120);
+  };
 
   const isSignedIn = Boolean(session?.user);
 
@@ -250,7 +374,36 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen overflow-x-hidden bg-white text-zinc-950 dark:bg-zinc-950 dark:text-zinc-50">
+    <main
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      className="relative min-h-screen overflow-x-hidden bg-white text-zinc-950 dark:bg-zinc-950 dark:text-zinc-50"
+    >
+      {/* Desktop cursor atmosphere: a small sharp follower plus a softer trailing glow. */}
+      {!reduceMotion && (
+        <>
+          <motion.div
+            aria-hidden="true"
+            style={{ x: cursorXSlow, y: cursorYSlow }}
+            className="pointer-events-none fixed left-0 top-0 z-[70] hidden size-72 -translate-x-1/2 -translate-y-1/2 rounded-full blur-3xl md:block"
+          >
+            <div className="size-full rounded-full bg-[radial-gradient(circle,rgba(124,58,237,0.12)_0%,rgba(59,130,246,0.06)_34%,transparent_72%)] dark:bg-[radial-gradient(circle,rgba(139,92,246,0.16)_0%,rgba(59,130,246,0.08)_34%,transparent_72%)]" />
+          </motion.div>
+
+          <motion.div
+            aria-hidden="true"
+            style={{ x: cursorXFast, y: cursorYFast }}
+            className="pointer-events-none fixed left-0 top-0 z-[71] hidden size-7 -translate-x-1/2 -translate-y-1/2 rounded-full border border-violet-500/40 bg-white/10 shadow-[0_0_30px_rgba(124,58,237,0.16)] backdrop-blur-[2px] md:block dark:border-violet-300/30 dark:bg-white/[0.04]"
+          />
+
+          <motion.div
+            aria-hidden="true"
+            style={{ x: cursorXFast, y: cursorYFast }}
+            className="pointer-events-none fixed left-0 top-0 z-[72] hidden size-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-violet-500 shadow-[0_0_14px_rgba(124,58,237,0.65)] md:block"
+          />
+        </>
+      )}
+
       {/* Navbar */}
       <header className="sticky top-0 z-50 border-b border-zinc-200/70 bg-white/90 backdrop-blur-xl dark:border-white/10 dark:bg-zinc-950/90">
         <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-5 sm:px-6 lg:px-8">
@@ -298,39 +451,43 @@ export default function Home() {
           <div className="hidden items-center gap-2.5 md:flex">
             {isSignedIn ? (
               <>
-                <Link
+                <MotionLink
+                  {...tapScale}
                   href="/dashboard"
                   className="inline-flex h-9 items-center rounded-lg border border-zinc-200 bg-white px-3.5 text-sm font-medium text-zinc-800 transition-colors hover:bg-zinc-50 dark:border-white/10 dark:bg-white/[0.04] dark:text-zinc-100 dark:hover:bg-white/[0.08]"
                 >
                   Open dashboard
-                </Link>
+                </MotionLink>
 
                 <UserMenuWithSession variant="compact" />
               </>
             ) : (
               <>
-                <Link
+                <MotionLink
+                  {...tapScale}
                   href="/sign-in"
                   className="inline-flex h-9 items-center rounded-lg px-3.5 text-sm font-medium text-zinc-600 transition-colors hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-300 dark:hover:bg-white/5 dark:hover:text-white"
                 >
                   Sign in
-                </Link>
+                </MotionLink>
 
-                <Link
+                <MotionLink
+                  {...tapScale}
                   href="/sign-in"
                   className="inline-flex h-9 items-center rounded-lg bg-zinc-950 px-3.5 text-sm font-medium text-white shadow-sm transition-all hover:bg-zinc-800 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200"
                 >
                   Get started
                   <ArrowRightIcon className="ml-1.5 size-3.5" />
-                </Link>
+                </MotionLink>
               </>
             )}
           </div>
 
-          <button
+          <motion.button
             type="button"
             aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
             onClick={() => setMobileMenuOpen((value) => !value)}
+            whileTap={{ scale: 0.9 }}
             className="flex size-9 items-center justify-center rounded-lg border border-zinc-200 text-zinc-700 md:hidden dark:border-white/10 dark:text-zinc-200"
           >
             {mobileMenuOpen ? (
@@ -338,11 +495,19 @@ export default function Home() {
             ) : (
               <MenuIcon className="size-5" />
             )}
-          </button>
+          </motion.button>
         </div>
 
-        {mobileMenuOpen && (
-          <div className="border-t border-zinc-200/70 bg-white px-5 py-5 md:hidden dark:border-white/10 dark:bg-zinc-950">
+        <AnimatePresence>
+          {mobileMenuOpen && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.25 }}
+              className="overflow-hidden border-t border-zinc-200/70 bg-white md:hidden dark:border-white/10 dark:bg-zinc-950"
+            >
+            <div className="px-5 py-5">
             <div className="mx-auto flex max-w-7xl flex-col gap-1">
               <button
                 type="button"
@@ -372,13 +537,14 @@ export default function Home() {
 
               {isSignedIn ? (
                 <div className="flex items-center justify-between gap-3">
-                  <Link
+                  <MotionLink
+                    whileTap={{ scale: 0.96 }}
                     href="/dashboard"
                     onClick={() => setMobileMenuOpen(false)}
                     className="inline-flex h-10 flex-1 items-center justify-center rounded-lg bg-zinc-950 px-4 text-sm font-medium text-white dark:bg-white dark:text-zinc-950"
                   >
                     Open dashboard
-                  </Link>
+                  </MotionLink>
 
                   <UserMenuWithSession variant="compact" />
                 </div>
@@ -403,8 +569,10 @@ export default function Home() {
                 </div>
               )}
             </div>
-          </div>
-        )}
+            </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </header>
 
       {/* Hero */}
@@ -416,46 +584,68 @@ export default function Home() {
         </div>
 
         <div className="relative mx-auto w-full max-w-7xl px-5 pb-16 pt-20 sm:px-6 sm:pb-20 sm:pt-24 lg:px-8 lg:pb-24 lg:pt-28">
-          <div className="mx-auto max-w-4xl text-center">
-            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-white px-3 py-1.5 text-xs font-medium text-zinc-600 shadow-sm dark:border-white/10 dark:bg-white/[0.04] dark:text-zinc-300">
+          <motion.div
+            initial="hidden"
+            animate="visible"
+            variants={staggerContainer}
+            className="mx-auto max-w-4xl text-center"
+          >
+            <motion.div
+              variants={fadeUp}
+              className="mb-6 inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-white px-3 py-1.5 text-xs font-medium text-zinc-600 shadow-sm dark:border-white/10 dark:bg-white/[0.04] dark:text-zinc-300"
+            >
               <span className="flex size-5 items-center justify-center rounded-full bg-violet-500/10 text-violet-500">
                 <SparkIcon className="size-3.5" />
               </span>
               AI-powered pull request reviews
-            </div>
+            </motion.div>
 
-            <h1 className="mx-auto max-w-4xl text-balance text-4xl font-semibold tracking-[-0.04em] text-zinc-950 sm:text-6xl lg:text-7xl dark:text-white">
+            <motion.h1
+              variants={fadeUp}
+              className="mx-auto max-w-4xl text-balance text-4xl font-semibold tracking-[-0.04em] text-zinc-950 sm:text-6xl lg:text-7xl dark:text-white"
+            >
               AI reviews that{" "}
               <span className="bg-gradient-to-r from-cyan-500 via-blue-600 to-violet-600 bg-clip-text text-transparent">
                 understand your codebase.
               </span>
-            </h1>
+            </motion.h1>
 
-            <p className="mx-auto mt-6 max-w-2xl text-pretty text-base leading-7 text-zinc-600 sm:text-lg sm:leading-8 dark:text-zinc-400">
+            <motion.p
+              variants={fadeUp}
+              className="mx-auto mt-6 max-w-2xl text-pretty text-base leading-7 text-zinc-600 sm:text-lg sm:leading-8 dark:text-zinc-400"
+            >
               CodePilot indexes your repository, reviews incoming pull
               requests with that context, and posts actionable feedback
               directly to GitHub.
-            </p>
+            </motion.p>
 
-            <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-              <Link
+            <motion.div
+              variants={fadeUp}
+              className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row"
+            >
+              <MotionLink
+                {...tapScale}
                 href={isSignedIn ? "/dashboard" : "/sign-in"}
                 className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-zinc-950 px-5 text-sm font-medium text-white shadow-sm transition-all hover:bg-zinc-800 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200"
               >
                 {isSignedIn ? "Open dashboard" : "Get started with GitHub"}
                 <ArrowRightIcon className="size-4" />
-              </Link>
+              </MotionLink>
 
-              <button
+              <motion.button
+                {...tapScale}
                 type="button"
                 onClick={() => scrollToSection("how-it-works")}
                 className="inline-flex h-11 items-center justify-center rounded-lg border border-zinc-200 bg-white px-5 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-50 dark:border-white/10 dark:bg-white/[0.04] dark:text-zinc-200 dark:hover:bg-white/[0.08]"
               >
                 See how it works
-              </button>
-            </div>
+              </motion.button>
+            </motion.div>
 
-            <div className="mt-7 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-zinc-500 dark:text-zinc-500">
+            <motion.div
+              variants={fadeUp}
+              className="mt-7 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-zinc-500 dark:text-zinc-500"
+            >
               <span className="inline-flex items-center gap-1.5">
                 <CheckIcon className="size-3.5 text-emerald-500" />
                 Reviews pull requests
@@ -465,11 +655,16 @@ export default function Home() {
                 <CheckIcon className="size-3.5 text-emerald-500" />
                 Posts feedback to GitHub
               </span>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
 
           {/* Product preview */}
-          <div className="mx-auto mt-14 max-w-6xl sm:mt-16">
+          <motion.div
+            initial={{ opacity: 0, y: 32, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ duration: 0.7, delay: 0.45 }}
+            className="mx-auto mt-14 max-w-6xl sm:mt-16"
+          >
             <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-2xl shadow-zinc-900/10 dark:border-white/10 dark:bg-zinc-900 dark:shadow-black/30">
               <div className="flex h-10 items-center gap-2 border-b border-zinc-200 bg-zinc-50 px-4 dark:border-white/10 dark:bg-zinc-900">
                 <div className="flex gap-1.5">
@@ -738,7 +933,7 @@ return setSession(refreshed);`}
               A review surface designed around the workflow your team already
               uses.
             </p>
-          </div>
+          </motion.div>
         </div>
       </section>
 
@@ -748,7 +943,11 @@ return setSession(refreshed);`}
         className="scroll-mt-20 border-b border-zinc-200/80 dark:border-white/10"
       >
         <div className="mx-auto w-full max-w-7xl px-5 py-20 sm:px-6 sm:py-24 lg:px-8">
-          <div className="max-w-2xl">
+          <motion.div
+            {...revealOnScroll}
+            variants={fadeUp}
+            className="max-w-2xl"
+          >
             <div className="text-xs font-semibold uppercase tracking-[0.18em] text-violet-500">
               How it works
             </div>
@@ -761,10 +960,18 @@ return setSession(refreshed);`}
               CodePilot fits into the GitHub workflow you already have instead
               of creating another place where developers need to work.
             </p>
-          </div>
+          </motion.div>
 
-          <div className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-            <div className="relative rounded-2xl border border-zinc-200 bg-white p-6 dark:border-white/10 dark:bg-white/[0.02]">
+          <motion.div
+            {...revealOnScroll}
+            variants={staggerContainer}
+            className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-4"
+          >
+            <motion.div
+              variants={fadeUp}
+              {...cardHover}
+              className="relative rounded-2xl border border-zinc-200 bg-white p-6 dark:border-white/10 dark:bg-white/[0.02]"
+            >
               <CircleNumber
                 number="1"
                 className="border-blue-500/20 bg-blue-500/10 text-blue-600 dark:text-blue-300"
@@ -776,9 +983,13 @@ return setSession(refreshed);`}
                 Sign in and install the CodePilot GitHub App so your repositories
                 and pull requests can be connected.
               </p>
-            </div>
+            </motion.div>
 
-            <div className="relative rounded-2xl border border-zinc-200 bg-white p-6 dark:border-white/10 dark:bg-white/[0.02]">
+            <motion.div
+              variants={fadeUp}
+              {...cardHover}
+              className="relative rounded-2xl border border-zinc-200 bg-white p-6 dark:border-white/10 dark:bg-white/[0.02]"
+            >
               <CircleNumber
                 number="2"
                 className="border-violet-500/20 bg-violet-500/10 text-violet-600 dark:text-violet-300"
@@ -792,9 +1003,13 @@ return setSession(refreshed);`}
                 CodePilot syncs repository files, chunks source code, generates
                 embeddings, and stores repository context for retrieval.
               </p>
-            </div>
+            </motion.div>
 
-            <div className="relative rounded-2xl border border-zinc-200 bg-white p-6 dark:border-white/10 dark:bg-white/[0.02]">
+            <motion.div
+              variants={fadeUp}
+              {...cardHover}
+              className="relative rounded-2xl border border-zinc-200 bg-white p-6 dark:border-white/10 dark:bg-white/[0.02]"
+            >
               <CircleNumber
                 number="3"
                 className="border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:text-emerald-300"
@@ -808,9 +1023,13 @@ return setSession(refreshed);`}
                 Continue opening pull requests normally. Supported PR events
                 trigger the review workflow automatically.
               </p>
-            </div>
+            </motion.div>
 
-            <div className="relative rounded-2xl border border-zinc-200 bg-white p-6 dark:border-white/10 dark:bg-white/[0.02]">
+            <motion.div
+              variants={fadeUp}
+              {...cardHover}
+              className="relative rounded-2xl border border-zinc-200 bg-white p-6 dark:border-white/10 dark:bg-white/[0.02]"
+            >
               <CircleNumber
                 number="4"
                 className="border-orange-500/20 bg-orange-500/10 text-orange-600 dark:text-orange-300"
@@ -824,10 +1043,14 @@ return setSession(refreshed);`}
                 CodePilot generates actionable review feedback and posts the
                 result back to the GitHub pull request.
               </p>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
 
-          <div className="mt-12 overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-50 dark:border-white/10 dark:bg-white/[0.02]">
+          <motion.div
+            {...revealOnScroll}
+            variants={scaleIn}
+            className="mt-12 overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-50 dark:border-white/10 dark:bg-white/[0.02]"
+          >
             <div className="grid lg:grid-cols-[0.9fr_1.1fr]">
               <div className="p-7 sm:p-9">
                 <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-zinc-400">
@@ -904,14 +1127,18 @@ return setSession(refreshed);`}
                 </div>
               </div>
             </div>
-          </div>
+          </motion.div>
         </div>
       </section>
 
       {/* Review criteria */}
       <section className="border-b border-zinc-200/80 dark:border-white/10">
         <div className="mx-auto w-full max-w-7xl px-5 py-20 sm:px-6 sm:py-24 lg:px-8">
-          <div className="mx-auto max-w-2xl text-center">
+          <motion.div
+            {...revealOnScroll}
+            variants={fadeUp}
+            className="mx-auto max-w-2xl text-center"
+          >
             <div className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-500">
               What CodePilot reviews
             </div>
@@ -924,9 +1151,13 @@ return setSession(refreshed);`}
               Review criteria are designed around practical engineering
               concerns rather than generic code style suggestions.
             </p>
-          </div>
+          </motion.div>
 
-          <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <motion.div
+            {...revealOnScroll}
+            variants={staggerContainer}
+            className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
+          >
             {[
               {
                 title: "Correctness",
@@ -968,8 +1199,11 @@ return setSession(refreshed);`}
               const Icon = item.icon;
 
               return (
-                <div
+                <motion.div
                   key={item.title}
+                  variants={fadeUp}
+                  whileHover={{ y: -4, scale: 1.02 }}
+                  transition={{ duration: 0.25 }}
                   className="rounded-2xl border border-zinc-200 bg-white p-6 transition-colors hover:bg-zinc-50 dark:border-white/10 dark:bg-white/[0.02] dark:hover:bg-white/[0.04]"
                 >
                   <div className="flex size-10 items-center justify-center rounded-xl bg-zinc-100 text-zinc-800 dark:bg-white/[0.06] dark:text-zinc-200">
@@ -983,10 +1217,10 @@ return setSession(refreshed);`}
                   <p className="mt-2 text-sm leading-6 text-zinc-600 dark:text-zinc-400">
                     {item.description}
                   </p>
-                </div>
+                </motion.div>
               );
             })}
-          </div>
+          </motion.div>
         </div>
       </section>
 
@@ -997,7 +1231,7 @@ return setSession(refreshed);`}
       >
         <div className="mx-auto w-full max-w-7xl px-5 py-20 sm:px-6 sm:py-24 lg:px-8">
           <div className="grid items-center gap-12 lg:grid-cols-[0.85fr_1.15fr] lg:gap-20">
-            <div>
+            <motion.div {...revealOnScroll} variants={slideInLeft}>
               <div className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-500">
                 Reviews
               </div>
@@ -1028,9 +1262,13 @@ return setSession(refreshed);`}
                   Generated review details remain accessible in CodePilot
                 </div>
               </div>
-            </div>
+            </motion.div>
 
-            <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4 shadow-sm dark:border-white/10 dark:bg-white/[0.02] sm:p-6">
+            <motion.div
+              {...revealOnScroll}
+              variants={slideInRight}
+              className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4 shadow-sm dark:border-white/10 dark:bg-white/[0.02] sm:p-6"
+            >
               <div className="rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-white/10 dark:bg-zinc-900">
                 <div className="border-b border-zinc-200 px-5 py-4 dark:border-white/10">
                   <div className="flex items-center gap-3">
@@ -1094,7 +1332,7 @@ return setSession(refreshed);`}
                   </div>
                 </div>
               </div>
-            </div>
+            </motion.div>
           </div>
         </div>
       </section>
@@ -1105,7 +1343,11 @@ return setSession(refreshed);`}
         className="scroll-mt-20 border-b border-zinc-200/80 dark:border-white/10"
       >
         <div className="mx-auto w-full max-w-5xl px-5 py-20 sm:px-6 sm:py-24">
-          <div className="mx-auto max-w-2xl text-center">
+          <motion.div
+            {...revealOnScroll}
+            variants={fadeUp}
+            className="mx-auto max-w-2xl text-center"
+          >
             <div className="text-xs font-semibold uppercase tracking-[0.18em] text-violet-500">
               Pricing
             </div>
@@ -1117,11 +1359,20 @@ return setSession(refreshed);`}
             <p className="mt-4 text-base leading-7 text-zinc-600 dark:text-zinc-400">
               Simple pricing based on how much you use CodePilot.
             </p>
-          </div>
+          </motion.div>
 
-          <div className="mt-12 grid gap-5 md:grid-cols-2">
+          <motion.div
+            {...revealOnScroll}
+            variants={staggerContainer}
+            className="mt-12 grid gap-5 md:grid-cols-2"
+          >
             {/* Free */}
-            <div className="rounded-2xl border border-zinc-200 bg-white p-7 dark:border-white/10 dark:bg-white/[0.02] sm:p-8">
+            <motion.div
+              variants={fadeUp}
+              whileHover={{ y: -4 }}
+              transition={{ duration: 0.25 }}
+              className="rounded-2xl border border-zinc-200 bg-white p-7 dark:border-white/10 dark:bg-white/[0.02] sm:p-8"
+            >
               <div className="text-sm font-semibold">{pricing.free.label}</div>
 
               <p className="mt-2 text-sm leading-6 text-zinc-500">
@@ -1152,16 +1403,22 @@ return setSession(refreshed);`}
                 ))}
               </div>
 
-              <Link
+              <MotionLink
+                {...tapScale}
                 href={isSignedIn ? "/dashboard" : "/sign-in"}
                 className="mt-8 inline-flex h-11 w-full items-center justify-center rounded-lg border border-zinc-200 text-sm font-medium text-zinc-800 transition-colors hover:bg-zinc-50 dark:border-white/10 dark:text-zinc-100 dark:hover:bg-white/[0.05]"
               >
                 {isSignedIn ? "Open dashboard" : "Get started"}
-              </Link>
-            </div>
+              </MotionLink>
+            </motion.div>
 
             {/* Pro */}
-            <div className="relative rounded-2xl border border-violet-500/30 bg-gradient-to-b from-violet-500/[0.06] to-white p-7 shadow-xl shadow-violet-500/5 dark:to-white/[0.02] sm:p-8">
+            <motion.div
+              variants={fadeUp}
+              whileHover={{ y: -4 }}
+              transition={{ duration: 0.25 }}
+              className="relative rounded-2xl border border-violet-500/30 bg-gradient-to-b from-violet-500/[0.06] to-white p-7 shadow-xl shadow-violet-500/5 dark:to-white/[0.02] sm:p-8"
+            >
               <div className="absolute right-6 top-6 rounded-full border border-violet-500/20 bg-violet-500/10 px-2.5 py-1 text-[10px] font-semibold text-violet-600 dark:text-violet-300">
                 Pro
               </div>
@@ -1197,27 +1454,34 @@ return setSession(refreshed);`}
               </div>
 
               {isSignedIn ? (
-                <UpgradeButton
-                  className="mt-8 h-11 w-full rounded-lg bg-zinc-950 text-sm font-medium text-white shadow-none hover:bg-zinc-800 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200"
-                />
+                <motion.div {...tapScale} className="mt-8 w-full">
+                  <UpgradeButton
+                    className="h-11 w-full rounded-lg bg-zinc-950 text-sm font-medium text-white shadow-none hover:bg-zinc-800 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200"
+                  />
+                </motion.div>
               ) : (
-                <Link
+                <MotionLink
+                  {...tapScale}
                   href="/sign-in"
                   className="mt-8 inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-zinc-950 text-sm font-medium text-white transition-colors hover:bg-zinc-800 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200"
                 >
                   Upgrade to Pro
                   <ArrowRightIcon className="size-4" />
-                </Link>
+                </MotionLink>
               )}
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         </div>
       </section>
 
       {/* FAQ */}
       <section className="border-b border-zinc-200/80 dark:border-white/10">
         <div className="mx-auto w-full max-w-4xl px-5 py-20 sm:px-6 sm:py-24">
-          <div className="max-w-2xl">
+          <motion.div
+            {...revealOnScroll}
+            variants={fadeUp}
+            className="max-w-2xl"
+          >
             <div className="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-400">
               FAQ
             </div>
@@ -1225,10 +1489,14 @@ return setSession(refreshed);`}
             <h2 className="mt-3 text-3xl font-semibold tracking-[-0.03em] sm:text-4xl">
               Questions, answered.
             </h2>
-          </div>
+          </motion.div>
 
-          <div className="mt-10 divide-y divide-zinc-200 rounded-2xl border border-zinc-200 dark:divide-white/10 dark:border-white/10">
-            <details className="group p-5 sm:p-6">
+          <motion.div
+            {...revealOnScroll}
+            variants={staggerContainer}
+            className="mt-10 divide-y divide-zinc-200 rounded-2xl border border-zinc-200 dark:divide-white/10 dark:border-white/10"
+          >
+            <motion.details variants={fadeUp} className="group p-5 sm:p-6">
               <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-sm font-semibold">
                 <span>What does CodePilot review?</span>
 
@@ -1241,9 +1509,9 @@ return setSession(refreshed);`}
                 CodePilot reviews pull requests across correctness, security,
                 performance, reliability, readability, and maintainability.
               </p>
-            </details>
+            </motion.details>
 
-            <details className="group p-5 sm:p-6">
+            <motion.details variants={fadeUp} className="group p-5 sm:p-6">
               <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-sm font-semibold">
                 <span>How does a review start?</span>
 
@@ -1257,9 +1525,9 @@ return setSession(refreshed);`}
                 webhook is validated and the review workflow runs
                 asynchronously.
               </p>
-            </details>
+            </motion.details>
 
-            <details className="group p-5 sm:p-6">
+            <motion.details variants={fadeUp} className="group p-5 sm:p-6">
               <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-sm font-semibold">
                 <span>Where does the review appear?</span>
 
@@ -1273,9 +1541,9 @@ return setSession(refreshed);`}
                 request, and the review can also be viewed from the CodePilot
                 dashboard.
               </p>
-            </details>
+            </motion.details>
 
-            <details className="group p-5 sm:p-6">
+            <motion.details variants={fadeUp} className="group p-5 sm:p-6">
               <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-sm font-semibold">
                 <span>Does CodePilot use repository context?</span>
 
@@ -1288,9 +1556,9 @@ return setSession(refreshed);`}
                 Yes. CodePilot indexes repository source and retrieves relevant
                 context together with the pull request changes during review.
               </p>
-            </details>
+            </motion.details>
 
-            <details className="group p-5 sm:p-6">
+            <motion.details variants={fadeUp} className="group p-5 sm:p-6">
               <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-sm font-semibold">
                 <span>What&apos;s included in Free?</span>
 
@@ -1303,9 +1571,9 @@ return setSession(refreshed);`}
                 The Free plan includes up to 5 AI reviews per month, public and
                 private repository access, and community support.
               </p>
-            </details>
+            </motion.details>
 
-            <details className="group p-5 sm:p-6">
+            <motion.details variants={fadeUp} className="group p-5 sm:p-6">
               <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-sm font-semibold">
                 <span>How much does Pro cost?</span>
 
@@ -1322,37 +1590,60 @@ return setSession(refreshed);`}
                 and includes unlimited AI reviews with public and private
                 repository access.
               </p>
-            </details>
-          </div>
+            </motion.details>
+          </motion.div>
         </div>
       </section>
 
       {/* Final CTA */}
       <section>
         <div className="mx-auto w-full max-w-7xl px-5 py-20 sm:px-6 sm:py-24 lg:px-8">
-          <div className="relative overflow-hidden rounded-3xl bg-zinc-950 px-6 py-14 text-white sm:px-10 sm:py-16">
+          <motion.div
+            {...revealOnScroll}
+            variants={scaleIn}
+            className="relative overflow-hidden rounded-3xl bg-zinc-950 px-6 py-14 text-white sm:px-10 sm:py-16"
+          >
             <div className="pointer-events-none absolute inset-0">
               <div className="absolute -right-16 -top-24 size-80 rounded-full bg-violet-600/20 blur-3xl" />
               <div className="absolute -bottom-24 left-20 size-72 rounded-full bg-blue-500/15 blur-3xl" />
             </div>
 
-            <div className="relative mx-auto max-w-3xl text-center">
-              <div className="mx-auto flex size-10 items-center justify-center rounded-2xl bg-white/10">
+            <motion.div
+              variants={staggerContainer}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.3 }}
+              className="relative mx-auto max-w-3xl text-center"
+            >
+              <motion.div
+                variants={fadeUp}
+                className="mx-auto flex size-10 items-center justify-center rounded-2xl bg-white/10"
+              >
                 <SparkIcon className="size-5 text-violet-300" />
-              </div>
+              </motion.div>
 
-              <h2 className="mt-6 text-3xl font-semibold tracking-[-0.03em] sm:text-4xl">
+              <motion.h2
+                variants={fadeUp}
+                className="mt-6 text-3xl font-semibold tracking-[-0.03em] sm:text-4xl"
+              >
                 Put another review layer between your code and production.
-              </h2>
+              </motion.h2>
 
-              <p className="mx-auto mt-4 max-w-2xl text-sm leading-7 text-zinc-400 sm:text-base">
+              <motion.p
+                variants={fadeUp}
+                className="mx-auto mt-4 max-w-2xl text-sm leading-7 text-zinc-400 sm:text-base"
+              >
                 Connect GitHub, index your repositories, and let CodePilot
                 bring another engineering perspective to the pull requests
                 your team is already reviewing.
-              </p>
+              </motion.p>
 
-              <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-                <Link
+              <motion.div
+                variants={fadeUp}
+                className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row"
+              >
+                <MotionLink
+                  {...tapScale}
                   href={isSignedIn ? "/dashboard" : "/sign-in"}
                   className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-white px-5 text-sm font-medium text-zinc-950 transition-colors hover:bg-zinc-200"
                 >
@@ -1361,24 +1652,29 @@ return setSession(refreshed);`}
                   {isSignedIn ? "Open dashboard" : "Get started with GitHub"}
 
                   <ArrowRightIcon className="size-4" />
-                </Link>
+                </MotionLink>
 
-                <button
+                <motion.button
+                  {...tapScale}
                   type="button"
                   onClick={() => scrollToSection("pricing")}
                   className="inline-flex h-11 items-center justify-center rounded-lg border border-white/15 px-5 text-sm font-medium text-white transition-colors hover:bg-white/10"
                 >
                   View pricing
-                </button>
-              </div>
-            </div>
-          </div>
+                </motion.button>
+              </motion.div>
+            </motion.div>
+          </motion.div>
         </div>
       </section>
 
       {/* Footer */}
       <footer className="border-t border-zinc-200 bg-zinc-50/70 dark:border-white/10 dark:bg-zinc-950">
-        <div className="mx-auto w-full max-w-7xl px-5 sm:px-6 lg:px-8">
+        <motion.div
+          {...revealOnScroll}
+          variants={fadeIn}
+          className="mx-auto w-full max-w-7xl px-5 sm:px-6 lg:px-8"
+        >
           <div className="grid gap-12 py-14 sm:py-16 lg:grid-cols-[1.5fr_1fr_1fr_1fr]">
             {/* Brand */}
             <div className="max-w-sm">
@@ -1564,7 +1860,7 @@ return setSession(refreshed);`}
               </a>
             </div>
           </div>
-        </div>
+        </motion.div>
       </footer>
     </main>
   );
