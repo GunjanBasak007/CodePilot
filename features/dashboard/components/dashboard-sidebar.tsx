@@ -1,5 +1,7 @@
+"use client";
 import Image from "next/image";
 import Link from "next/link";
+import { motion } from "framer-motion";
 
 import { DASHBOARD_ROUTES } from "@/features/dashboard/lib/routes";
 import { DashboardNav } from "@/features/dashboard/components/dashboard-nav";
@@ -38,7 +40,9 @@ export function DashboardSidebar({
               tooltip="CodePilot"
               render={
                 <Link href={DASHBOARD_ROUTES.overview}>
-                  <span
+                  <motion.span
+                    whileHover={{ scale: 1.03 }}
+                    transition={{ duration: 0.2 }}
                     className="
                       flex size-14 shrink-0 items-center justify-center
                       overflow-hidden rounded-none bg-sidebar
@@ -57,7 +61,7 @@ export function DashboardSidebar({
                         group-data-[collapsible=icon]:w-7
                       "
                     />
-                  </span>
+                  </motion.span>
 
                   <span className="grid flex-1 text-left leading-tight group-data-[collapsible=icon]:hidden">
                     <span className="truncate font-medium">

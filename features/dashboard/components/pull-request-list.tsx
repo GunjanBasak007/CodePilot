@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
 import { useMemo, useState } from "react";
+import { motion } from "framer-motion";
 import { ArrowUpRightIcon } from "@phosphor-icons/react";
 
 import { Input } from "@/components/ui/input";
@@ -121,9 +122,19 @@ export function PullRequestList({
   }, [pullRequests, filter, search]);
 
   return (
-    <div className="flex flex-1 flex-col gap-5 p-6">
+    <motion.div
+      initial={{ opacity: 0, y: 18 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, ease: "easeOut" }}
+      className="flex flex-1 flex-col gap-5 p-6"
+    >
       {/* Controls */}
-      <section className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+      <motion.section
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.08 }}
+        className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between"
+      >
         <div className="overflow-x-auto">
           <Tabs
             value={filter}
@@ -157,16 +168,21 @@ export function PullRequestList({
 
         <Input
           placeholder="Search pull requests..."
-          className="w-full lg:max-w-sm"
+          className="w-full rounded-lg border-border/80 bg-background/70 shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-violet-500/30 lg:max-w-sm"
           value={search}
           onChange={(event) =>
             setSearch(event.target.value)
           }
         />
-      </section>
+      </motion.section>
 
       {/* List */}
-      <section className="overflow-hidden rounded-lg border border-border">
+      <motion.section
+        initial={{ opacity: 0, y: 14 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.45, delay: 0.14 }}
+        className="overflow-hidden rounded-xl border border-border/80 bg-card/30 shadow-sm"
+      >
         {visiblePullRequests.length === 0 ? (
           <div className="flex min-h-64 items-center justify-center px-6 text-center">
             <div>
@@ -193,7 +209,7 @@ export function PullRequestList({
             ))}
           </div>
         )}
-      </section>
+      </motion.section>
 
       {visiblePullRequests.length > 0 ? (
         <p className="text-xs text-muted-foreground">
@@ -201,7 +217,7 @@ export function PullRequestList({
           {pullRequests.length} pull requests.
         </p>
       ) : null}
-    </div>
+    </motion.div>
   );
 }
 
@@ -224,7 +240,7 @@ function PullRequestRow({
   return (
     <Link
       href={`/dashboard/pull-request/${pullRequest.id}`}
-      className="group block px-5 py-5 transition-colors hover:bg-muted/30 sm:px-6"
+      className="group block px-5 py-5 transition-all hover:bg-muted/30 hover:shadow-[inset_2px_0_0_theme(colors.violet.500)] sm:px-6"
     >
       <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
         {/* Main PR information */}

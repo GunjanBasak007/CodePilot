@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { motion } from "framer-motion";
 import { formatDistanceToNow } from "date-fns";
 
 import { Button } from "@/components/ui/button";
@@ -66,10 +69,16 @@ export function DashboardOverview({ data }: DashboardOverviewProps) {
       : Math.max(data.usage.limit - data.usage.used, 0);
 
   return (
-    <main className="flex flex-1 flex-col p-6">
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-8">
+    <main className="relative flex flex-1 flex-col overflow-hidden p-6">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(124,58,237,0.07),transparent_32%),radial-gradient(circle_at_20%_0%,rgba(59,130,246,0.06),transparent_28%)]" />
+      <div className="relative mx-auto flex w-full max-w-7xl flex-col gap-8">
         {/* Workspace header */}
-        <section className="flex flex-col gap-2">
+        <motion.section
+          initial={{ opacity: 0, y: 18 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
+          className="flex flex-col gap-2"
+        >
           <p className="text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
             Workspace
           </p>
@@ -108,10 +117,15 @@ export function DashboardOverview({ data }: DashboardOverviewProps) {
               </Button>
             </div>
           </div>
-        </section>
+        </motion.section>
 
         {/* Primary metrics */}
-        <section className="grid gap-px overflow-hidden rounded-lg border border-border bg-border sm:grid-cols-2 xl:grid-cols-4">
+        <motion.section
+          initial="hidden"
+          animate="visible"
+          variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.08, delayChildren: 0.12 } } }}
+          className="grid gap-px overflow-hidden rounded-xl border border-border/80 bg-border/70 shadow-sm sm:grid-cols-2 xl:grid-cols-4"
+        >
           <Metric
             label="Repositories"
             value={data.repositories}
@@ -139,10 +153,15 @@ export function DashboardOverview({ data }: DashboardOverviewProps) {
                 : `${remainingReviews} remaining`
             }
           />
-        </section>
+        </motion.section>
 
         {/* Main content */}
-        <section className="grid gap-6 lg:grid-cols-[minmax(0,1.6fr)_minmax(300px,0.8fr)]">
+        <motion.section
+          initial={{ opacity: 0, y: 22 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.55, delay: 0.18, ease: "easeOut" }}
+          className="grid gap-6 lg:grid-cols-[minmax(0,1.6fr)_minmax(300px,0.8fr)]"
+        >
           {/* Recent PRs */}
           <Card className="overflow-hidden">
             <CardHeader className="border-b border-border">
@@ -280,10 +299,15 @@ export function DashboardOverview({ data }: DashboardOverviewProps) {
               </div>
             </CardContent>
           </Card>
-        </section>
+        </motion.section>
 
         {/* Workspace status */}
-        <section className="grid gap-6 md:grid-cols-3">
+        <motion.section
+          initial={{ opacity: 0, y: 18 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.25, ease: "easeOut" }}
+          className="grid gap-6 md:grid-cols-3"
+        >
           <InfoBlock
             label="GitHub"
             value={
@@ -316,7 +340,7 @@ export function DashboardOverview({ data }: DashboardOverviewProps) {
             }
             href="/dashboard/settings"
           />
-        </section>
+        </motion.section>
       </div>
     </main>
   );
@@ -332,7 +356,11 @@ function Metric({
   detail: string;
 }) {
   return (
-    <div className="bg-background px-5 py-5">
+    <motion.div
+      variants={{ hidden: { opacity: 0, y: 10 }, visible: { opacity: 1, y: 0 } }}
+      transition={{ duration: 0.35, ease: "easeOut" }}
+      className="bg-background px-5 py-5 transition-colors hover:bg-muted/20"
+    >
       <p className="text-xs font-medium text-muted-foreground">{label}</p>
 
       <div className="mt-2 flex items-end justify-between gap-3">
@@ -342,7 +370,7 @@ function Metric({
           {detail}
         </p>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -370,7 +398,7 @@ function InfoBlock({
   return (
     <Link
       href={href}
-      className="rounded-lg border border-border p-5 transition-colors hover:bg-muted/40"
+      className="rounded-xl border border-border/80 bg-card/40 p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:border-violet-500/20 hover:bg-muted/30 hover:shadow-md"
     >
       <p className="text-xs font-medium uppercase tracking-[0.12em] text-muted-foreground">
         {label}

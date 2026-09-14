@@ -68,6 +68,7 @@ export function DashboardNav() {
               <SidebarMenuItem key={item.href}>
                 <SidebarMenuButton
                   isActive={active}
+                  className="relative transition-all duration-200 hover:translate-x-0.5 hover:bg-sidebar-accent/80 data-[active=true]:bg-sidebar-accent data-[active=true]:shadow-sm"
                   tooltip={item.title}
                   render={
                     <Link href={item.href}>

@@ -3,6 +3,7 @@
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { motion } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import {
     Table,
@@ -134,8 +135,18 @@ export function RepoList() {
       }
 
       return (
-        <div className="flex flex-1 flex-col gap-4 p-6">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <motion.div
+          initial={{ opacity: 0, y: 18 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
+          className="flex flex-1 flex-col gap-5 p-6"
+        >
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.08 }}
+            className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+          >
             <Tabs
               value={filter}
               onValueChange={(value) => setFilter(value as Filter)}
@@ -148,15 +159,20 @@ export function RepoList() {
             </Tabs>
             <Input
               placeholder="Search repositories…"
-              className="max-w-xs"
+              className="max-w-xs rounded-lg border-border/80 bg-background/70 shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-violet-500/30"
               value={search}
               onChange={(event) => setSearch(event.target.value)}
             />
-          </div>
+          </motion.div>
     
-          <div className="rounded-none border border-border">
+          <motion.div
+            initial={{ opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.45, delay: 0.14 }}
+            className="overflow-hidden rounded-xl border border-border/80 bg-card/30 shadow-sm"
+          >
             <Table>
-              <TableHeader>
+              <TableHeader className="bg-muted/25">
                 <TableRow>
                   <TableHead>Repository</TableHead>
                   <TableHead>Visibility</TableHead>
@@ -169,12 +185,12 @@ export function RepoList() {
               </TableHeader>
               <TableBody>{rows}</TableBody>
             </Table>
-          </div>
+          </motion.div>
     
           <div ref={loadMoreRef} className="py-2 text-center text-sm text-muted-foreground">
             {footer}
           </div>
-        </div>
+        </motion.div>
       );
     
 }
@@ -184,7 +200,7 @@ function RepoRow({ repo }: { repo: DashboardRepo }) {
     const tone = repo.visibility === "public" ? "info" : "warning";
   
     return (
-      <TableRow>
+      <TableRow className="transition-colors hover:bg-muted/35">
         <TableCell>
           <div className="flex flex-col">
             <span className="font-medium">{repo.name}</span>

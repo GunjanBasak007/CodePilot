@@ -1,5 +1,7 @@
 "use client";
 
+import { motion } from "framer-motion";
+
 import {
   ArrowSquareOut,
   CheckCircle,
@@ -107,19 +109,27 @@ export function GithubConnectCard({
     : "Not connected";
 
   return (
-    <div className="flex flex-1 flex-col p-6">
+    <motion.div
+      initial={{ opacity: 0, y: 18 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, ease: "easeOut" }}
+      className="relative flex flex-1 flex-col overflow-hidden p-6"
+    >
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,197,94,0.06),transparent_28%),radial-gradient(circle_at_85%_20%,rgba(124,58,237,0.05),transparent_24%)]" />
       <Card
         className={cn(
-          "w-full max-w-3xl overflow-hidden",
+          "relative w-full max-w-3xl overflow-hidden border-border/80 bg-card/80 shadow-sm transition-shadow hover:shadow-lg",
           connected
             ? "border-emerald-500/20"
             : "border-border",
         )}
       >
-        <CardHeader className="border-b border-border px-6 py-6 sm:px-8">
+        <CardHeader className="border-b border-border/80 bg-muted/10 px-6 py-6 sm:px-8">
           <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
             <div className="flex min-w-0 items-start gap-4">
-              <div
+              <motion.div
+                whileHover={{ scale: 1.04, rotate: 1 }}
+                transition={{ duration: 0.2 }}
                 className={cn(
                   "flex size-11 shrink-0 items-center justify-center rounded-lg border",
                   connected
@@ -128,7 +138,7 @@ export function GithubConnectCard({
                 )}
               >
                 <GithubLogo className="size-6" />
-              </div>
+              </motion.div>
 
               <div className="min-w-0">
                 <p className="text-xs font-medium uppercase tracking-[0.12em] text-muted-foreground">
@@ -146,9 +156,14 @@ export function GithubConnectCard({
               </div>
             </div>
 
-            <span className={statusBadge(statusTone)}>
+            <motion.span
+              initial={{ opacity: 0, scale: 0.92 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.3, delay: 0.2 }}
+              className={statusBadge(statusTone)}
+            >
               {statusLabel}
-            </span>
+            </motion.span>
           </div>
         </CardHeader>
 
@@ -209,7 +224,7 @@ export function GithubConnectCard({
           )}
         </CardContent>
 
-        <CardFooter className="border-t border-border px-6 py-5 sm:px-8">
+        <CardFooter className="border-t border-border/80 bg-muted/5 px-6 py-5 sm:px-8">
           {connected ? (
             <ConnectedActions />
           ) : (
@@ -217,6 +232,6 @@ export function GithubConnectCard({
           )}
         </CardFooter>
       </Card>
-    </div>
+    </motion.div>
   );
 }

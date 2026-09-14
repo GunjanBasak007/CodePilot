@@ -1,6 +1,7 @@
 "use client";
 
 import { format } from "date-fns";
+import { motion } from "framer-motion";
 import {
   CreditCardIcon,
   GithubLogoIcon,
@@ -104,7 +105,12 @@ function ProfileTab({
   );
 
   return (
-    <div className="space-y-6">
+    <motion.div
+      initial={{ opacity: 0, y: 14 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.45, ease: "easeOut" }}
+      className="space-y-6"
+    >
       <div>
         <p className="text-base font-semibold tracking-tight">
           Profile
@@ -115,8 +121,13 @@ function ProfileTab({
         </p>
       </div>
 
-      <Card>
-        <CardContent className="p-6 sm:p-7">
+      <motion.div
+        initial={{ opacity: 0, y: 14 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.45, delay: 0.08 }}
+      >
+        <Card className="overflow-hidden border-border/80 bg-card/80 shadow-sm">
+          <CardContent className="p-6 sm:p-7">
           <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
             <Avatar size="lg" className="size-14">
               {profile.image ? (
@@ -197,8 +208,9 @@ function ProfileTab({
             </p>
           </div>
         </CardContent>
-      </Card>
-    </div>
+        </Card>
+      </motion.div>
+    </motion.div>
   );
 }
 
@@ -231,7 +243,12 @@ function SubscriptionTab({
         : "warning";
 
   return (
-    <div className="space-y-6">
+    <motion.div
+      initial={{ opacity: 0, y: 14 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.45, ease: "easeOut" }}
+      className="space-y-6"
+    >
       <div>
         <p className="text-base font-semibold tracking-tight">
           Subscription
@@ -242,8 +259,8 @@ function SubscriptionTab({
         </p>
       </div>
 
-      <Card>
-        <CardHeader className="border-b border-border px-6 py-6 sm:px-7">
+      <Card className="overflow-hidden border-border/80 bg-card/80 shadow-sm">
+        <CardHeader className="border-b border-border/80 bg-muted/10 px-6 py-6 sm:px-7">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div className="flex items-start gap-3">
               <div
@@ -394,7 +411,7 @@ function SubscriptionTab({
           </section>
         </CardContent>
       </Card>
-    </div>
+    </motion.div>
   );
 }
 
@@ -404,13 +421,14 @@ export function SettingsContent({
   usage,
 }: SettingsContentProps) {
   return (
-    <div className="flex flex-1 flex-col px-6 pb-8 pt-5">
+    <div className="relative flex flex-1 flex-col overflow-hidden px-6 pb-8 pt-5">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(124,58,237,0.05),transparent_30%)]" />
       <Tabs
         defaultValue="profile"
         orientation="vertical"
         className="flex w-full flex-1 flex-col gap-8 lg:flex-row"
       >
-        <aside className="w-full shrink-0 lg:w-52">
+        <aside className="relative z-10 w-full shrink-0 lg:w-52">
           <div className="mb-4">
             <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
               Settings
@@ -424,7 +442,7 @@ export function SettingsContent({
           <TabsList className="h-auto w-full flex-col items-stretch justify-start gap-1 bg-transparent p-0">
             <TabsTrigger
               value="profile"
-              className="w-full justify-start gap-2.5 px-3 py-2 text-sm font-medium data-[state=active]:bg-muted data-[state=active]:text-foreground"
+              className="w-full justify-start gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-all hover:bg-muted/60 data-[state=active]:bg-muted data-[state=active]:text-foreground data-[state=active]:shadow-sm"
             >
               <UserCircleIcon className="size-4" />
               Profile
@@ -432,7 +450,7 @@ export function SettingsContent({
 
             <TabsTrigger
               value="subscription"
-              className="w-full justify-start gap-2.5 px-3 py-2 text-sm font-medium data-[state=active]:bg-muted data-[state=active]:text-foreground"
+              className="w-full justify-start gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-all hover:bg-muted/60 data-[state=active]:bg-muted data-[state=active]:text-foreground data-[state=active]:shadow-sm"
             >
               <CreditCardIcon className="size-4" />
               Subscription
@@ -440,7 +458,7 @@ export function SettingsContent({
           </TabsList>
         </aside>
 
-        <main className="min-w-0 flex-1 lg:max-w-3xl">
+        <main className="relative z-10 min-w-0 flex-1 lg:max-w-3xl">
           <TabsContent
             value="profile"
             className="mt-0"

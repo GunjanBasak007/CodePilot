@@ -7,6 +7,7 @@
 
 "use client";
 
+import { motion } from "framer-motion";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 
@@ -24,7 +25,12 @@ type DashboardHeaderProps = {
  */
 export function DashboardHeader({ title, description }: DashboardHeaderProps) {
   return (
-    <header className="flex h-14 shrink-0 items-center gap-2 border-b border-border px-4">
+    <motion.header
+      initial={{ opacity: 0, y: -8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35, ease: "easeOut" }}
+      className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-2 border-b border-border/70 bg-background/85 px-4 backdrop-blur-xl"
+    >
       {/* Opens/closes the sidebar on smaller screens or icon-collapsed mode */}
       <SidebarTrigger className="-ml-1" />
       <Separator orientation="vertical" className="mr-2 h-4" />
@@ -34,6 +40,6 @@ export function DashboardHeader({ title, description }: DashboardHeaderProps) {
           <p className="truncate text-xs text-muted-foreground">{description}</p>
         ) : null}
       </div>
-    </header>
+    </motion.header>
   );
 }
